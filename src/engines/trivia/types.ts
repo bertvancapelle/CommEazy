@@ -139,13 +139,16 @@ export interface TriviaSettings {
   difficulty: TriviaDifficulty;
   questionsPerRound: number;
   timerSeconds: number;
+  feedbackSeconds: number;
 }
 
 export const DEFAULT_TRIVIA_SETTINGS: TriviaSettings = {
   difficulty: 'medium',
   questionsPerRound: 10,
   timerSeconds: 0, // No timer by default (senior-friendly)
+  feedbackSeconds: 2, // Show answer feedback for 2 seconds
 };
 
 export const QUESTIONS_PER_ROUND_OPTIONS = [5, 10, 15, 20] as const;
 export const TIMER_OPTIONS = [0, 15, 30, 60] as const;
+export const FEEDBACK_TIMER_OPTIONS = [1, 2, 3, 5] as const;

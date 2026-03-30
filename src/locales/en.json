@@ -3052,7 +3052,18 @@
       "status_correct": "correct spot",
       "status_present": "wrong spot",
       "status_absent": "not in word",
-      "status_empty": "empty"
+      "status_empty": "empty",
+      "download": {
+        "checking": "Checking...",
+        "title": "Download word list",
+        "description": "To play Woordraad, the word list needs to be downloaded first. This only needs to happen once.",
+        "size": "Approximately 0.5 MB",
+        "button": "Download",
+        "downloading": "Downloading...",
+        "pleaseWait": "Please wait",
+        "error": "Download failed. Check your internet connection and try again.",
+        "complete": "Download complete!"
+      }
     },
     "sudoku": {
       "description": "Fill the 9×9 grid with numbers",
@@ -3105,6 +3116,7 @@
       "questionsPerRound": "Questions per round",
       "timerSetting": "Timer per question",
       "timerOff": "Off",
+      "feedbackTimer": "Show result",
       "showStats": "Show statistics",
       "hideStats": "Hide statistics",
       "timeUp": "Time's up!",

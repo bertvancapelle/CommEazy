@@ -1,16 +1,22 @@
 /**
  * Woordraad Game Engine — Wordle-style word guessing
  *
- * The player guesses a 5-letter Dutch word in up to 6 attempts.
+ * The player guesses a 5-letter word in up to 6 attempts.
  * Each guess receives per-letter feedback:
  * - correct: letter is in the right position (green)
  * - present: letter is in the word but wrong position (yellow)
  * - absent:  letter is not in the word (grey)
  *
+ * Word lists are loaded externally via downloadService + wordBank.
+ * Two-list architecture:
+ * - targetWords: common words (Hunspell ∩ OpenSubtitles top-5000) — game solutions
+ * - validGuesses: all 5-letter words (full Hunspell) — accepted player input
+ *
  * Solo mode only for now. Multiplayer support via XMPP planned.
  *
+ * @see src/engines/woordraad/wordBank.ts
+ * @see src/services/downloadService.ts
  * @see src/types/games.ts
- * @see src/contexts/GameContext.tsx
  */
 
 // ============================================================
@@ -49,63 +55,50 @@ export const WORD_LENGTH = 5;
 export const MAX_GUESSES = 6;
 
 // ============================================================
-// Dutch Word List (5-letter, common words)
-// Curated for senior-friendliness: common, recognizable words
+// Word Data Type (loaded from woordraad-{lang}.json)
 // ============================================================
 
-const DUTCH_WORDS: string[] = [
-  // Natuur & Weer
-  'bloem', 'regen', 'storm', 'wolke', 'sneeuw',
-  'rivier', 'hemel', 'aarde', 'plant', 'groen',
-  'water', 'velde', 'bomen', 'bloed', 'steen',
-  // Huis & Familie
-  'huis', 'stoel', 'tafel', 'deur', 'kamer',
-  'moede', 'vader', 'broer', 'zuste', 'kinds',
-  // Eten & Drinken
-  'brood', 'kaas', 'appel', 'soep', 'koffi',
-  'melk', 'taart', 'visse', 'vlees', 'fruit',
-  // Dieren
-  'hond', 'kat', 'paard', 'vogel', 'konij',
-  'muis', 'haas', 'zwaan', 'duif', 'vos',
-  // Dagelijks leven
-  'brief', 'fiets', 'trein', 'auto', 'klok',
-  'boek', 'lamp', 'radio', 'sleep', 'wandel',
-  'licht', 'nacht', 'morge', 'avond', 'week',
-  'maand', 'feest', 'vrede', 'geluk', 'liefde',
-  'kracht', 'begin', 'einde', 'harte', 'hoofd',
-  'hand', 'voet', 'ogen', 'mond', 'haar',
-  // Werkwoorden (stam/kort)
-  'lopen', 'lezen', 'slape', 'eten', 'koken',
-  'speel', 'lache', 'huile', 'danse', 'zinge',
-  'werke', 'denke', 'praat', 'luist', 'kijke',
-  // Eigenschappen
-  'groot', 'klein', 'mooi', 'sterk', 'zwaar',
-  'goed', 'nieuw', 'oud', 'warm', 'koud',
-  'lang', 'kort', 'diep', 'hoog', 'breed',
-  'snel', 'traag', 'wijs', 'stil', 'luid',
-].filter(w => w.length === WORD_LENGTH);
-
-// Valid guesses include all target words
-const VALID_GUESSES = new Set(DUTCH_WORDS.map(w => w.toUpperCase()));
+/**
+ * Shape of the downloaded woordraad JSON file.
+ * Contains two lists: frequent target words and all valid guesses.
+ */
+export interface WoordraadWordData {
+  language: string;
+  version: string;
+  generated: string;
+  source: string;
+  /** Common 5-letter words — used as game solutions */
+  targetWords: string[];
+  /** All valid 5-letter words — accepted as player guesses */
+  validGuesses: string[];
+}
 
 // ============================================================
 // Engine Functions
 // ============================================================
 
 /**
- * Pick a random target word
+ * Pick a random target word from the loaded word list
  */
-export function pickRandomWord(): string {
-  const index = Math.floor(Math.random() * DUTCH_WORDS.length);
-  return DUTCH_WORDS[index].toUpperCase();
+export function pickRandomWord(targetWords: string[]): string {
+  if (targetWords.length === 0) {
+    // Fallback — should never happen if wordBank is loaded
+    console.warn('[Woordraad] pickRandomWord called with empty word list');
+    return 'WOORD';
+  }
+  const index = Math.floor(Math.random() * targetWords.length);
+  return targetWords[index].toUpperCase();
 }
 
 /**
  * Create initial game state
+ *
+ * @param targetWords - List of possible target words (from wordBank)
+ * @param targetWord - Optional specific target word (for testing/multiplayer)
  */
-export function createInitialState(targetWord?: string): WoordraadState {
+export function createInitialState(targetWords: string[], targetWord?: string): WoordraadState {
   return {
-    targetWord: targetWord || pickRandomWord(),
+    targetWord: targetWord || pickRandomWord(targetWords),
     guesses: [],
     results: [],
     currentInput: '',
@@ -183,12 +176,15 @@ export function updateLetterStatuses(
 /**
  * Check if a guess is valid (correct length, in word list).
  * Returns null if valid, or an error key for i18n.
+ *
+ * @param guess - The player's guess
+ * @param validGuesses - Set of all accepted words (uppercase)
  */
-export function validateGuess(guess: string): string | null {
+export function validateGuess(guess: string, validGuesses: Set<string>): string | null {
   if (guess.length !== WORD_LENGTH) {
     return 'games.woordraad.errorTooShort';
   }
-  if (!VALID_GUESSES.has(guess.toUpperCase())) {
+  if (!validGuesses.has(guess.toUpperCase())) {
     return 'games.woordraad.errorNotInList';
   }
   return null;
@@ -251,10 +247,13 @@ export function serializeState(state: WoordraadState): Record<string, unknown> {
 
 /**
  * Deserialize state from database snapshot.
+ *
+ * @param snapshot - Serialized state from database
+ * @param targetWords - Word list for fallback target (from wordBank)
  */
-export function deserializeState(snapshot: Record<string, unknown>): WoordraadState {
+export function deserializeState(snapshot: Record<string, unknown>, targetWords: string[]): WoordraadState {
   return {
-    targetWord: (snapshot.targetWord as string) || pickRandomWord(),
+    targetWord: (snapshot.targetWord as string) || pickRandomWord(targetWords),
     guesses: (snapshot.guesses as string[]) || [],
     results: (snapshot.results as LetterResult[][]) || [],
     currentInput: '',

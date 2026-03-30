@@ -18,7 +18,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { spacing, borderRadius, touchTargets, typography } from '@/theme';
+import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
 import { GameHeader, GameOverModal } from '@/components/games';
 import type { GameOverStat } from '@/components/games';
@@ -548,6 +548,22 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
   );
 
   // ============================================================
+  // Gamepad button (RIGHT side — consistent across all games)
+  // ============================================================
+
+  const renderGamepadButton = useCallback((onPress: () => void, label?: string) => (
+    <HapticTouchable
+      hapticDisabled
+      style={styles.gamepadButton}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label || t('navigation.games')}
+    >
+      <Icon name="gamepad" size={28} color={themeConst.textOnPrimary} />
+    </HapticTouchable>
+  ), [t]);
+
+  // ============================================================
   // Main Render
   // ============================================================
 
@@ -556,25 +572,27 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
       <ModuleScreenLayout
         moduleId={MODULE_ID}
         moduleBlock={
-          phase === 'menu' ? (
-            <ModuleHeader
-              moduleId={MODULE_ID}
-              icon="document-text"
-              title={t('games.woordy.title')}
-              skipSafeArea
-            />
-          ) : (
-            <GameHeader
-              backIcon="gamepad"
-              onBack={handleQuit}
-              title={t('games.woordy.title')}
-              timerSeconds={durationSeconds}
-              actions={[]}
-              moduleId={MODULE_ID}
-            />
-          )
+          <ModuleHeader
+            moduleId={MODULE_ID}
+            icon="document-text"
+            title={t('games.woordy.title')}
+            skipSafeArea
+            rightAccessory={renderGamepadButton(
+              phase === 'menu' ? onBack : handleQuit,
+              phase === 'menu' ? undefined : t('games.common.quit'),
+            )}
+          />
         }
-        controlsBlock={<></>}
+        controlsBlock={
+          phase === 'playing' ? (
+            <GameHeader
+              moduleId={MODULE_ID}
+              showTimer
+              timer={durationSeconds}
+              actions={[]}
+            />
+          ) : <></>
+        }
         contentBlock={
           phase === 'menu' ? renderMenu() : renderPlaying()
         }
@@ -778,5 +796,13 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  gamepadButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

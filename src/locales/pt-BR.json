@@ -3044,7 +3044,18 @@
       "status_correct": "lugar certo",
       "status_present": "lugar errado",
       "status_absent": "não está na palavra",
-      "status_empty": "vazio"
+      "status_empty": "vazio",
+      "download": {
+        "checking": "Verificando...",
+        "title": "Baixar lista de palavras",
+        "description": "Para jogar Woordraad, primeiro é preciso baixar as palavras. Isso só precisa ser feito uma vez.",
+        "size": "Aproximadamente 0,5 MB",
+        "button": "Baixar",
+        "downloading": "Baixando...",
+        "pleaseWait": "Por favor, aguarde",
+        "error": "O download falhou. Verifique sua conexão com a internet e tente novamente.",
+        "complete": "Download concluído!"
+      }
     },
     "sudoku": {
       "description": "Preencha a grade 9×9 com números",
@@ -3097,6 +3108,7 @@
       "questionsPerRound": "Perguntas por rodada",
       "timerSetting": "Temporizador por pergunta",
       "timerOff": "Desligado",
+      "feedbackTimer": "Mostrar resultado",
       "showStats": "Mostrar estatísticas",
       "hideStats": "Ocultar estatísticas",
       "timeUp": "Tempo esgotado!",

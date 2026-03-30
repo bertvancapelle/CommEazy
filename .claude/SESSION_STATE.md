@@ -6,29 +6,36 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-30
-- **Sessie:** Games Session 5 — Trivia download service implementatie
-- **Commit:** 1908c1c — feat: add on-demand trivia question download per language
+- **Sessie:** Games Session 6 — Trivia vragenbank opschalen naar ~4.216 vragen
+- **Commit:** Geen code commits deze sessie (alleen data bestanden + scripts)
 
 ## Voltooide Taken Deze Sessie
 
-1. **Trivia Download Service — On-demand vragen per taal:**
-   - Nieuw: `src/services/downloadService.ts` — Gedeelde download service voor Trivia + Woordy
-     - GitHub Releases URL: `https://github.com/CommEazy/game-data/releases/download/v1.0/{type}-{lang}.json`
-     - RNFS.downloadFile() met progress tracking, retry (3x exponential backoff), timeout 60s
-     - AsyncStorage metadata (versie + taal tracking)
-     - File validation (JSON structuur check)
-     - Exports: checkDataStatus, downloadGameData, readLocalGameData, clearGameData, getStorageUsage
-   - Refactored: `src/engines/trivia/questionBank.ts` — Verwijderd: ~40 hardcoded Engelse vragen (BUNDLED_QUESTIONS). Nieuw: in-memory cache met loadQuestions(language) die uit lokale JSON bestanden leest via readLocalGameData
-   - Updated: `src/screens/modules/TriviaScreen.tsx` — 3 nieuwe game phases (loading → download → downloading), download prompt UI met progress bar, error handling met retry
-   - i18n: `games.trivia.download.*` keys (9 keys) in alle 13 talen
-   - Data: `game-data/trivia-nl.json` + `game-data/trivia-en.json` (120 vragen per taal, 7 thema's, 3 moeilijkheidsniveaus)
+1. **Trivia Vragenbank Opschalen (120 → 4.216 vragen):**
+   - Nieuw: `game-data/fetch_opentdb.py` — Python script dat alle verified questions van OpenTDB API haalt
+     - Twee-pass strategie met session tokens, per-categorie fetching, deduplicatie
+     - 24 OpenTDB categorieën → 7 CommEazy thema's (general, arts, entertainment, science, sports, history, animals)
+     - Sequentiële ID toewijzing (en-0001 t/m en-4216)
+   - Nieuw: `game-data/translate_to_dutch.py` — Python script voor EN→NL vertaling via Anthropic API
+     - Batches van 25 vragen, checkpoint-based resume, retry met exponential backoff
+     - Model: claude-3-5-sonnet-20241022, stdlib urllib (geen dependencies)
+     - **NIET succesvol uitgevoerd** — API credits te laag (Max abonnement ≠ API credits)
+   - Updated: `game-data/trivia-en.json` — Opgeschaald van 120 naar 4.216 Engelse vragen (1.5 MB)
+     - Verdeling: entertainment: 2206, history: 689, science: 438, general: 379, arts: 215, sports: 160, animals: 129
+   - Updated: `game-data/trivia-nl.json` — **Bevat nog ENGELSE content** (placeholder, zelfde als trivia-en.json)
+     - Gebruiker handelt vertaling zelf af buiten Claude
+
+2. **Beide JSON bestanden geüpload naar GitHub:**
+   - Gebruiker heeft trivia-en.json en trivia-nl.json handmatig naar GitHub geüpload
+   - Download flow in de app kan nu getest worden (content is Engels in beide bestanden)
 
 ## Openstaande Taken
 
-1. **GitHub Repo Setup (VEREIST voor werkende download):**
-   - Public repo `CommEazy/game-data` aanmaken op GitHub
-   - Release v1.0 aanmaken met trivia-nl.json en trivia-en.json als assets
-   - Bestanden staan klaar in `game-data/` folder van het project
+1. **Nederlandse vertaling trivia-nl.json (GEBRUIKER HANDELT DIT AF):**
+   - 4.216 vragen moeten vertaald worden van Engels naar Nederlands
+   - Huidige trivia-nl.json bevat Engelse content als placeholder
+   - Na vertaling: opnieuw uploaden naar GitHub Release
+   - Script `translate_to_dutch.py` staat klaar maar vereist Anthropic API credits (~$3-5) of alternatief (DeepL)
 
 2. **Trivia verbeteringen (toekomstig):**
    - Meer talen: trivia JSON bestanden voor de, fr, es, it, no, sv, da, pt, pt-BR, pl
@@ -62,12 +69,11 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| On-demand download i.p.v. gebundelde vragen | 0 MB bundle, ~1.5 MB download per taal, voldoet aan TRIVIA_DESIGN.md §8.3-8.4 |
-| GitHub Releases als hosting | Publiek, geen credentials nodig, gratis, CDN via GitHub |
-| Gedeelde downloadService voor Trivia + Woordy | Voorkomt duplicatie, Woordy kan dezelfde service gebruiken voor dictionaries |
-| 120 vragen per taal | Voldoende voor gevarieerde gameplay, later uitbreidbaar |
-| 7 phases in TriviaScreen | loading → download → downloading → menu → category → playing → gameover |
-| Geen NetInfo dependency | RNFS error handling volstaat, geen extra dependency nodig |
+| OpenTDB als bron voor trivia vragen | CC BY-SA 4.0 licentie, 4.216 verified multiple-choice vragen, gratis API |
+| 4.216 vragen per taal (was 120) | Veel meer variatie, minder herhaling bij langdurig gebruik |
+| Vertaling uitgesteld | Anthropic API credits te laag, Max abonnement ≠ API credits. Gebruiker handelt af |
+| Engelse placeholder in trivia-nl.json | Download flow kan getest worden ongeacht content taal |
+| translate_to_dutch.py als apart script | Herbruikbaar voor andere talen, checkpoint-based resume |
 
 ## Context voor Volgende Sessie
 
@@ -77,8 +83,10 @@ Geen.
 - **Download service:** `src/services/downloadService.ts` — gedeeld voor trivia + woordy
 - **Trivia data flow:** TriviaScreen init → checkDataStatus → loadQuestions (lokaal) OF download prompt → downloadGameData → loadQuestions → menu phase
 - **Question bank:** In-memory cache, geladen via readLocalGameData uit DocumentDirectory
-- **Game data bestanden:** `game-data/trivia-{lang}.json` (klaar voor GitHub Releases upload)
+- **Game data bestanden:** `game-data/trivia-{lang}.json` — geüpload naar GitHub, nl.json bevat nog Engelse content
+- **Game data scripts:** `game-data/fetch_opentdb.py` (fetcher) + `game-data/translate_to_dutch.py` (vertaler, vereist API credits)
 - **GameLobbyScreen:** Alle 6 routes actief, iterates over ALL_GAME_TYPES
 - **Woordy engine:** Pure functions, 15×15 board, tap-to-place, universal letter values
 - **WatermelonDB schema:** Versie 30 (game_sessions + game_stats tabellen)
 - **XMPP game protocol:** Types gedefinieerd, hooks gebouwd, sendGameStanza is stub
+- **Trivia verdeling (4.216 vragen):** entertainment: 2206, history: 689, science: 438, general: 379, arts: 215, sports: 160, animals: 129

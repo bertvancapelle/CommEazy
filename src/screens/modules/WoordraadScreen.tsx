@@ -4,30 +4,31 @@
  * Player guesses a 5-letter Dutch word in up to 6 attempts.
  * Color feedback per letter: green (correct), yellow (present), grey (absent).
  *
- * Senior-inclusive design:
- * - Large letter tiles (56×56pt minimum)
- * - High contrast colors for feedback
- * - On-screen QWERTY keyboard with 60pt keys
- * - Clear visual feedback with color + icon (not color-only)
+ * Senior-inclusive design — "kassabon" layout:
+ * - Scrollable previous guesses zone (32pt compact tiles with color feedback)
+ * - Fixed input row (52pt large tiles) always visible above keyboard
+ * - Fixed on-screen QWERTY keyboard (52pt keys) always visible at bottom
+ * - High contrast colors for feedback (green/orange/grey)
+ * - All 6 guess rows + input + keyboard fit on iPhone SE without scrolling
  *
  * @see src/engines/woordraad/engine.ts
  * @see src/types/games.ts
  */
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
-import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView } from '@/components/games';
+import { GameHeader, GameOverModal, GameStatsView } from '@/components/games';
 import type { GameOverStat } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useGameSession } from '@/hooks/games/useGameSession';
 import type { ModuleColorId } from '@/types/liquidGlass';
-import type { GameDifficulty } from '@/types/games';
+
 
 import {
   createInitialState,
@@ -40,9 +41,15 @@ import {
   WORD_LENGTH,
   MAX_GUESSES,
   type WoordraadState,
-  type LetterStatus,
-  type LetterResult,
 } from '@/engines/woordraad/engine';
+import { checkDataStatus, downloadGameData, type DownloadProgress } from '@/services/downloadService';
+import {
+  loadWordLists,
+  isWordListsLoaded,
+  getLoadedLanguage,
+  getTargetWords,
+  getValidGuesses,
+} from '@/engines/woordraad/wordBank';
 
 // ============================================================
 // Constants
@@ -50,14 +57,17 @@ import {
 
 const MODULE_ID: ModuleColorId = 'woordraad' as ModuleColorId;
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const GRID_PADDING = spacing.md * 2;
 
-// Tile sizing: fit 5 tiles with gaps in available width
+// Tile sizing
 const TILE_GAP = 6;
-const TILE_SIZE = Math.min(
-  Math.floor((SCREEN_WIDTH - GRID_PADDING - TILE_GAP * (WORD_LENGTH - 1)) / WORD_LENGTH),
-  64,
-);
+
+// Kassabon tiles — compact previous guesses (scrollable zone)
+const KASSABON_TILE_SIZE = 32;
+const KASSABON_FONT_SIZE = 18;
+
+// Input row tiles — large, focused current guess (fixed above keyboard)
+const INPUT_TILE_SIZE = 52;
+const INPUT_FONT_SIZE = 28;
 
 // Keyboard layout — Dutch QWERTY
 const KEYBOARD_ROWS = [
@@ -77,7 +87,7 @@ interface WoordraadScreenProps {
   onBack: () => void;
 }
 
-type GamePhase = 'menu' | 'playing' | 'gameover';
+type GamePhase = 'loading' | 'download' | 'downloading' | 'menu' | 'playing' | 'gameover';
 
 // ============================================================
 // Feedback colors (WCAG AAA compliant)
@@ -95,7 +105,7 @@ const FEEDBACK_COLORS = {
 // ============================================================
 
 export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const themeColors = useColors();
   const moduleColor = useModuleColor(MODULE_ID);
   const insets = useSafeAreaInsets();
@@ -110,10 +120,18 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
 
   // Game state
   const [gameState, setGameState] = useState<WoordraadState | null>(null);
-  const [phase, setPhase] = useState<GamePhase>('menu');
+  const [phase, setPhase] = useState<GamePhase>('loading');
   const [error, setError] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(false);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const kassabonScrollRef = useRef<ScrollView>(null);
+
+  // Download state
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  // Current language code (e.g. 'nl', 'en', 'de')
+  const woordraadLanguage = useMemo(() => i18n.language.substring(0, 2), [i18n.language]);
 
   // Clear error after 2 seconds
   const showError = useCallback((errorKey: string) => {
@@ -129,9 +147,87 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
     };
   }, []);
 
+  // Auto-scroll kassabon to latest guess
+  useEffect(() => {
+    if (gameState && gameState.guesses.length > 0) {
+      requestAnimationFrame(() => {
+        kassabonScrollRef.current?.scrollToEnd({ animated: true });
+      });
+    }
+  }, [gameState?.guesses.length]);
+
+  // ============================================================
+  // Initialization — Check if word lists are available
+  // ============================================================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkAndLoadWords() {
+      // If already loaded for this language, go straight to menu
+      if (isWordListsLoaded() && getLoadedLanguage() === woordraadLanguage) {
+        setPhase('menu');
+        return;
+      }
+
+      // Check if data is downloaded locally
+      const status = await checkDataStatus('woordraad', woordraadLanguage);
+
+      if (cancelled) return;
+
+      if (status.isAvailable) {
+        // Data is downloaded — load into memory
+        const loaded = await loadWordLists(woordraadLanguage);
+        if (cancelled) return;
+
+        if (loaded) {
+          setPhase('menu');
+        } else {
+          // File exists but couldn't be loaded — re-download
+          setPhase('download');
+        }
+      } else {
+        // No data — show download prompt
+        setPhase('download');
+      }
+    }
+
+    checkAndLoadWords();
+    return () => { cancelled = true; };
+  }, [woordraadLanguage]);
+
+  // ============================================================
+  // Download handler
+  // ============================================================
+
+  const handleStartDownload = useCallback(async () => {
+    setPhase('downloading');
+    setDownloadProgress(0);
+    setDownloadError(null);
+
+    const result = await downloadGameData('woordraad', woordraadLanguage, (progress: DownloadProgress) => {
+      setDownloadProgress(progress.progress);
+    });
+
+    if (!result.success) {
+      setDownloadError(result.error || 'download_failed');
+      setPhase('download');
+      return;
+    }
+
+    // Load the downloaded word lists into memory
+    const loaded = await loadWordLists(woordraadLanguage);
+    if (loaded) {
+      setPhase('menu');
+    } else {
+      setDownloadError('load_failed');
+      setPhase('download');
+    }
+  }, [woordraadLanguage]);
+
   // Start new game
   const handleStartGame = useCallback(async () => {
-    const state = createInitialState();
+    const state = createInitialState(getTargetWords());
     setGameState(state);
     setPhase('playing');
     setError(null);
@@ -160,7 +256,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
         return;
       }
 
-      const validationError = validateGuess(gameState.currentInput);
+      const validationError = validateGuess(gameState.currentInput, getValidGuesses());
       if (validationError) {
         showError(validationError);
         return;
@@ -245,6 +341,170 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
   }, [gameState, durationSeconds, t]);
 
   // ============================================================
+  // Gamepad button (RIGHT side — consistent across all games)
+  // ============================================================
+
+  const renderGamepadButton = useCallback((onPress: () => void, label?: string) => (
+    <HapticTouchable
+      hapticDisabled
+      style={styles.gamepadButton}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label || t('navigation.games')}
+    >
+      <Icon name="gamepad" size={28} color={themeConst.textOnPrimary} />
+    </HapticTouchable>
+  ), [t]);
+
+  // ============================================================
+  // Render — Loading Phase (checking local data)
+  // ============================================================
+
+  if (phase === 'loading') {
+    return (
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <ModuleScreenLayout
+          moduleId={MODULE_ID}
+          moduleBlock={
+            <ModuleHeader
+              moduleId={MODULE_ID}
+              icon="chatbubble"
+              title={t('navigation.woordraad')}
+              skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
+            />
+          }
+          controlsBlock={<></>}
+          contentBlock={
+            <View style={styles.downloadContent}>
+              <ActivityIndicator size="large" color={moduleColor} />
+              <Text style={[styles.downloadStatusText, { color: themeColors.textSecondary }]}>
+                {t('games.woordraad.download.checking')}
+              </Text>
+            </View>
+          }
+        />
+      </View>
+    );
+  }
+
+  // ============================================================
+  // Render — Download Phase (prompt to download)
+  // ============================================================
+
+  if (phase === 'download') {
+    return (
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <ModuleScreenLayout
+          moduleId={MODULE_ID}
+          moduleBlock={
+            <ModuleHeader
+              moduleId={MODULE_ID}
+              icon="chatbubble"
+              title={t('navigation.woordraad')}
+              skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
+            />
+          }
+          controlsBlock={<></>}
+          contentBlock={
+            <View style={styles.downloadContent}>
+              <View style={[styles.downloadCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                <Text style={styles.downloadEmoji}>📥</Text>
+                <Text style={[styles.downloadTitle, { color: themeColors.textPrimary }]}>
+                  {t('games.woordraad.download.title')}
+                </Text>
+                <Text style={[styles.downloadDescription, { color: themeColors.textSecondary }]}>
+                  {t('games.woordraad.download.description')}
+                </Text>
+                <Text style={[styles.downloadSize, { color: themeColors.textTertiary }]}>
+                  {t('games.woordraad.download.size')}
+                </Text>
+
+                {downloadError && (
+                  <View style={styles.downloadErrorBanner}>
+                    <Icon name="warning" size={20} color="#F44336" />
+                    <Text style={styles.downloadErrorText}>
+                      {t('games.woordraad.download.error')}
+                    </Text>
+                  </View>
+                )}
+
+                <HapticTouchable
+                  style={[styles.downloadButton, { backgroundColor: moduleColor }]}
+                  onPress={handleStartDownload}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('games.woordraad.download.button')}
+                >
+                  <Icon name="download" size={24} color="#FFFFFF" />
+                  <Text style={styles.downloadButtonText}>
+                    {t('games.woordraad.download.button')}
+                  </Text>
+                </HapticTouchable>
+              </View>
+            </View>
+          }
+        />
+      </View>
+    );
+  }
+
+  // ============================================================
+  // Render — Downloading Phase (progress bar)
+  // ============================================================
+
+  if (phase === 'downloading') {
+    const progressPercent = Math.round(downloadProgress * 100);
+
+    return (
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <ModuleScreenLayout
+          moduleId={MODULE_ID}
+          moduleBlock={
+            <ModuleHeader
+              moduleId={MODULE_ID}
+              icon="chatbubble"
+              title={t('navigation.woordraad')}
+              skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
+            />
+          }
+          controlsBlock={<></>}
+          contentBlock={
+            <View style={styles.downloadContent}>
+              <View style={[styles.downloadCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                <Text style={styles.downloadEmoji}>📥</Text>
+                <Text style={[styles.downloadTitle, { color: themeColors.textPrimary }]}>
+                  {t('games.woordraad.download.downloading')}
+                </Text>
+
+                {/* Progress bar */}
+                <View style={styles.progressBarContainer}>
+                  <View style={[styles.progressBarTrack, { backgroundColor: themeColors.border }]}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        { backgroundColor: moduleColor, width: `${progressPercent}%` },
+                      ]}
+                    />
+                  </View>
+                  <Text style={[styles.progressBarText, { color: themeColors.textSecondary }]}>
+                    {progressPercent}%
+                  </Text>
+                </View>
+
+                <Text style={[styles.downloadStatusText, { color: themeColors.textTertiary }]}>
+                  {t('games.woordraad.download.pleaseWait')}
+                </Text>
+              </View>
+            </View>
+          }
+        />
+      </View>
+    );
+  }
+
+  // ============================================================
   // Render — Menu Phase
   // ============================================================
 
@@ -258,10 +518,8 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
               moduleId={MODULE_ID}
               icon="chatbubble"
               title={t('navigation.woordraad')}
-              showBackButton
-              onBackPress={onBack}
-              backIcon="gamepad"
               skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
             />
           }
           controlsBlock={<></>}
@@ -339,10 +597,8 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
             moduleId={MODULE_ID}
             icon="chatbubble"
             title={t('navigation.woordraad')}
-            showBackButton
-            onBackPress={handleQuit}
-            backIcon="gamepad"
             skipSafeArea
+            rightAccessory={renderGamepadButton(handleQuit, t('games.common.quit'))}
           />
         }
         controlsBlock={
@@ -364,66 +620,89 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
               </View>
             )}
 
-            {/* Guess grid */}
-            <View style={styles.gridContainer}>
-              {Array.from({ length: MAX_GUESSES }).map((_, rowIndex) => {
-                const guess = gameState?.guesses[rowIndex];
-                const result = gameState?.results[rowIndex];
-                const isCurrentRow = rowIndex === (gameState?.guesses.length ?? 0);
-                const currentInput = isCurrentRow ? (gameState?.currentInput ?? '') : '';
-
+            {/* ============ KASSABON ZONE — scrollable previous guesses ============ */}
+            <ScrollView
+              ref={kassabonScrollRef}
+              style={styles.kassabonScroll}
+              contentContainerStyle={styles.kassabonContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {gameState?.guesses.map((guess, rowIndex) => {
+                const result = gameState.results[rowIndex];
+                if (!result) return null;
                 return (
-                  <View key={rowIndex} style={styles.gridRow}>
-                    {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => {
-                      let letter = '';
-                      let status: LetterStatus = 'empty';
-
-                      if (guess && result) {
-                        letter = result[colIndex].letter;
-                        status = result[colIndex].status;
-                      } else if (isCurrentRow && colIndex < currentInput.length) {
-                        letter = currentInput[colIndex];
-                      }
-
-                      return (
-                        <View
-                          key={colIndex}
-                          style={[
-                            styles.tile,
-                            {
-                              backgroundColor: status !== 'empty'
-                                ? FEEDBACK_COLORS[status]
-                                : themeColors.surface,
-                              borderColor: letter && status === 'empty'
-                                ? moduleColor
-                                : status !== 'empty'
-                                  ? FEEDBACK_COLORS[status]
-                                  : themeColors.border,
-                            },
-                          ]}
-                          accessibilityLabel={letter ? `${letter}, ${t(`games.woordraad.status_${status}`)}` : undefined}
-                        >
-                          <Text
-                            style={[
-                              styles.tileLetter,
-                              {
-                                color: status !== 'empty'
-                                  ? '#FFFFFF'
-                                  : themeColors.textPrimary,
-                              },
-                            ]}
-                          >
-                            {letter}
-                          </Text>
-                        </View>
-                      );
-                    })}
+                  <View key={rowIndex} style={styles.kassabonRow}>
+                    {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => (
+                      <View
+                        key={colIndex}
+                        style={[
+                          styles.kassabonTile,
+                          {
+                            backgroundColor: FEEDBACK_COLORS[result[colIndex].status],
+                            borderColor: FEEDBACK_COLORS[result[colIndex].status],
+                          },
+                        ]}
+                        accessibilityLabel={`${result[colIndex].letter}, ${t(`games.woordraad.status_${result[colIndex].status}`)}`}
+                      >
+                        <Text style={styles.kassabonLetter}>
+                          {result[colIndex].letter}
+                        </Text>
+                      </View>
+                    ))}
                   </View>
                 );
               })}
+
+              {/* Empty rows — show remaining unfilled rows as placeholders */}
+              {Array.from({ length: Math.max(0, MAX_GUESSES - (gameState?.guesses.length ?? 0) - 1) }).map((_, i) => (
+                <View key={`empty-${i}`} style={styles.kassabonRow}>
+                  {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => (
+                    <View
+                      key={colIndex}
+                      style={[
+                        styles.kassabonTile,
+                        {
+                          backgroundColor: 'transparent',
+                          borderColor: themeColors.border,
+                        },
+                      ]}
+                    />
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+
+            {/* ============ INPUT ROW — fixed current guess ============ */}
+            <View style={styles.inputRowContainer}>
+              <View style={styles.inputRow}>
+                {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => {
+                  const letter = (gameState?.currentInput ?? '')[colIndex] ?? '';
+                  return (
+                    <View
+                      key={colIndex}
+                      style={[
+                        styles.inputTile,
+                        {
+                          backgroundColor: themeColors.surface,
+                          borderColor: letter ? moduleColor : themeColors.border,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.inputLetter,
+                          { color: themeColors.textPrimary },
+                        ]}
+                      >
+                        {letter}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
 
-            {/* On-screen keyboard */}
+            {/* ============ KEYBOARD — fixed at bottom ============ */}
             <View style={[styles.keyboardContainer, { paddingBottom: spacing.md + insets.bottom }]}>
               {KEYBOARD_ROWS.map((row, rowIndex) => (
                 <View key={rowIndex} style={styles.keyboardRow}>
@@ -606,8 +885,6 @@ const styles = StyleSheet.create({
   // Game
   gameContent: {
     flex: 1,
-    justifyContent: 'space-between',
-    paddingTop: spacing.sm,
   },
   errorBanner: {
     marginHorizontal: spacing.md,
@@ -620,26 +897,53 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: '600',
   },
-  // Grid
-  gridContainer: {
+  // Kassabon — scrollable previous guesses
+  kassabonScroll: {
+    flex: 1,
+  },
+  kassabonContent: {
     alignItems: 'center',
     gap: TILE_GAP,
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
-  gridRow: {
+  kassabonRow: {
     flexDirection: 'row',
     gap: TILE_GAP,
   },
-  tile: {
-    width: TILE_SIZE,
-    height: TILE_SIZE,
+  kassabonTile: {
+    width: KASSABON_TILE_SIZE,
+    height: KASSABON_TILE_SIZE,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  kassabonLetter: {
+    fontSize: KASSABON_FONT_SIZE,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+  },
+  // Input row — fixed current guess above keyboard
+  inputRowContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    gap: TILE_GAP,
+  },
+  inputTile: {
+    width: INPUT_TILE_SIZE,
+    height: INPUT_TILE_SIZE,
     borderRadius: borderRadius.sm,
     borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  tileLetter: {
-    fontSize: Math.max(TILE_SIZE * 0.5, 24),
+  inputLetter: {
+    fontSize: INPUT_FONT_SIZE,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
@@ -670,5 +974,100 @@ const styles = StyleSheet.create({
   keyText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  gamepadButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Download flow
+  downloadContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  downloadCard: {
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    padding: spacing.xl,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 400,
+  },
+  downloadEmoji: {
+    fontSize: 48,
+    marginBottom: spacing.md,
+  },
+  downloadTitle: {
+    ...typography.h3,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  downloadDescription: {
+    ...typography.body,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: spacing.sm,
+  },
+  downloadSize: {
+    ...typography.label,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  downloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: touchTargets.comfortable,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+    width: '100%',
+  },
+  downloadButtonText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  downloadStatusText: {
+    ...typography.body,
+    textAlign: 'center',
+    marginTop: spacing.md,
+  },
+  downloadErrorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    borderRadius: borderRadius.sm,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  downloadErrorText: {
+    ...typography.body,
+    color: '#F44336',
+    flex: 1,
+  },
+  progressBarContainer: {
+    width: '100%',
+    marginBottom: spacing.md,
+  },
+  progressBarTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: spacing.xs,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressBarText: {
+    ...typography.label,
+    textAlign: 'center',
   },
 });

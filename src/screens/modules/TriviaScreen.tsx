@@ -15,6 +15,7 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
@@ -40,8 +41,8 @@ import {
   getMaxScore,
   serializeState,
 } from '@/engines/trivia/engine';
-import type { TriviaState, TriviaDifficulty, TriviaTheme } from '@/engines/trivia/types';
-import { ALL_TRIVIA_THEMES, DEFAULT_TRIVIA_SETTINGS, QUESTIONS_PER_ROUND_OPTIONS, TIMER_OPTIONS } from '@/engines/trivia/types';
+import type { TriviaState, TriviaDifficulty, TriviaTheme, TriviaSettings } from '@/engines/trivia/types';
+import { ALL_TRIVIA_THEMES, DEFAULT_TRIVIA_SETTINGS, QUESTIONS_PER_ROUND_OPTIONS, TIMER_OPTIONS, FEEDBACK_TIMER_OPTIONS } from '@/engines/trivia/types';
 import { checkDataStatus, downloadGameData, type DownloadProgress } from '@/services/downloadService';
 import { loadQuestions, isQuestionsLoaded, getLoadedLanguage } from '@/engines/trivia/questionBank';
 
@@ -50,7 +51,7 @@ import { loadQuestions, isQuestionsLoaded, getLoadedLanguage } from '@/engines/t
 // ============================================================
 
 const MODULE_ID: ModuleColorId = 'trivia' as ModuleColorId;
-const FEEDBACK_DELAY = 1500; // ms to show feedback before advancing
+const SETTINGS_STORAGE_KEY = '@commeazy/trivia_settings';
 
 // ============================================================
 // Types
@@ -105,6 +106,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
   const [difficulty, setDifficulty] = useState<TriviaDifficulty>('medium');
   const [questionsPerRound, setQuestionsPerRound] = useState(DEFAULT_TRIVIA_SETTINGS.questionsPerRound);
   const [timerSeconds, setTimerSeconds] = useState(DEFAULT_TRIVIA_SETTINGS.timerSeconds);
+  const [feedbackSeconds, setFeedbackSeconds] = useState(DEFAULT_TRIVIA_SETTINGS.feedbackSeconds);
   const [showStats, setShowStats] = useState(false);
   const [questionTimer, setQuestionTimer] = useState(0);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -116,6 +118,60 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
 
   // Current language code (e.g. 'nl', 'en', 'de')
   const triviaLanguage = useMemo(() => i18n.language.substring(0, 2), [i18n.language]);
+
+  // ============================================================
+  // Settings Persistence
+  // ============================================================
+
+  // Load persisted settings on mount
+  useEffect(() => {
+    AsyncStorage.getItem(SETTINGS_STORAGE_KEY).then(stored => {
+      if (stored) {
+        try {
+          const s = JSON.parse(stored) as Partial<TriviaSettings>;
+          if (s.difficulty) setDifficulty(s.difficulty);
+          if (s.questionsPerRound) setQuestionsPerRound(s.questionsPerRound);
+          if (s.timerSeconds !== undefined) setTimerSeconds(s.timerSeconds);
+          if (s.feedbackSeconds !== undefined) setFeedbackSeconds(s.feedbackSeconds);
+        } catch {
+          // Invalid JSON — use defaults
+        }
+      }
+    });
+  }, []);
+
+  // Save settings helper
+  const saveSettings = useCallback((updated: Partial<TriviaSettings>) => {
+    const settings: TriviaSettings = {
+      difficulty,
+      questionsPerRound,
+      timerSeconds,
+      feedbackSeconds,
+      ...updated,
+    };
+    AsyncStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings)).catch(() => {});
+  }, [difficulty, questionsPerRound, timerSeconds, feedbackSeconds]);
+
+  // Wrapped setters that also persist
+  const handleSetDifficulty = useCallback((d: TriviaDifficulty) => {
+    setDifficulty(d);
+    saveSettings({ difficulty: d });
+  }, [saveSettings]);
+
+  const handleSetQuestionsPerRound = useCallback((q: number) => {
+    setQuestionsPerRound(q);
+    saveSettings({ questionsPerRound: q });
+  }, [saveSettings]);
+
+  const handleSetTimerSeconds = useCallback((s: number) => {
+    setTimerSeconds(s);
+    saveSettings({ timerSeconds: s });
+  }, [saveSettings]);
+
+  const handleSetFeedbackSeconds = useCallback((s: number) => {
+    setFeedbackSeconds(s);
+    saveSettings({ feedbackSeconds: s });
+  }, [saveSettings]);
 
   // ============================================================
   // Initialization — Check if questions are available
@@ -224,7 +280,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
                 }
                 return advanced;
               });
-            }, FEEDBACK_DELAY);
+            }, feedbackSeconds * 1000);
             return newState;
           });
           return 0;
@@ -236,7 +292,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
     return () => {
       if (questionTimerRef.current) clearInterval(questionTimerRef.current);
     };
-  }, [gameState?.currentQuestionIndex, gameState?.isComplete, gameState?.showingFeedback, timerSeconds, completeGame]);
+  }, [gameState?.currentQuestionIndex, gameState?.isComplete, gameState?.showingFeedback, timerSeconds, feedbackSeconds, completeGame]);
 
   // Show category picker
   const handleShowCategories = useCallback(() => {
@@ -278,8 +334,8 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
         }
         return advanced;
       });
-    }, FEEDBACK_DELAY);
-  }, [gameState, completeGame]);
+    }, feedbackSeconds * 1000);
+  }, [gameState, feedbackSeconds, completeGame]);
 
   // Quit
   const handleQuit = useCallback(() => {
@@ -351,6 +407,19 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
   // Render — Loading Phase (checking if data is available)
   // ============================================================
 
+  // Gamepad button for right side of ModuleHeader
+  const renderGamepadButton = useCallback((onPress: () => void, label?: string) => (
+    <HapticTouchable
+      hapticDisabled
+      style={styles.gamepadButton}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label || t('navigation.games')}
+    >
+      <Icon name="gamepad" size={28} color={themeConst.textOnPrimary} />
+    </HapticTouchable>
+  ), [t]);
+
   if (phase === 'loading') {
     return (
       <View style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -361,10 +430,8 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               moduleId={MODULE_ID}
               icon="star"
               title={t('navigation.trivia')}
-              showBackButton
-              onBackPress={onBack}
-              backIcon="gamepad"
               skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
             />
           }
           controlsBlock={<></>}
@@ -395,10 +462,8 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               moduleId={MODULE_ID}
               icon="star"
               title={t('navigation.trivia')}
-              showBackButton
-              onBackPress={onBack}
-              backIcon="gamepad"
               skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
             />
           }
           controlsBlock={<></>}
@@ -458,10 +523,8 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               moduleId={MODULE_ID}
               icon="star"
               title={t('navigation.trivia')}
-              showBackButton
-              onBackPress={onBack}
-              backIcon="gamepad"
               skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
             />
           }
           controlsBlock={<></>}
@@ -513,10 +576,8 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               moduleId={MODULE_ID}
               icon="star"
               title={t('navigation.trivia')}
-              showBackButton
-              onBackPress={onBack}
-              backIcon="gamepad"
               skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
             />
           }
           controlsBlock={<></>}
@@ -536,7 +597,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
                 </Text>
                 <DifficultyPicker
                   selected={difficulty as GameDifficulty}
-                  onSelect={(d) => setDifficulty(d as TriviaDifficulty)}
+                  onSelect={(d) => handleSetDifficulty(d as TriviaDifficulty)}
                   options={DIFFICULTY_OPTIONS}
                   moduleId={MODULE_ID}
                 />
@@ -556,7 +617,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
                           borderColor: questionsPerRound === count ? moduleColor : themeColors.border,
                         },
                       ]}
-                      onPress={() => setQuestionsPerRound(count)}
+                      onPress={() => handleSetQuestionsPerRound(count)}
                     >
                       <Text style={[
                         styles.chipText,
@@ -583,13 +644,40 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
                           borderColor: timerSeconds === sec ? moduleColor : themeColors.border,
                         },
                       ]}
-                      onPress={() => setTimerSeconds(sec)}
+                      onPress={() => handleSetTimerSeconds(sec)}
                     >
                       <Text style={[
                         styles.chipText,
                         { color: timerSeconds === sec ? '#FFFFFF' : themeColors.textPrimary },
                       ]}>
                         {sec === 0 ? t('games.trivia.timerOff') : `${sec}s`}
+                      </Text>
+                    </HapticTouchable>
+                  ))}
+                </View>
+
+                {/* Feedback timer */}
+                <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+                  {t('games.trivia.feedbackTimer')}
+                </Text>
+                <View style={styles.chipRow}>
+                  {FEEDBACK_TIMER_OPTIONS.map(sec => (
+                    <HapticTouchable
+                      key={sec}
+                      style={[
+                        styles.chip,
+                        {
+                          backgroundColor: feedbackSeconds === sec ? moduleColor : themeColors.surface,
+                          borderColor: feedbackSeconds === sec ? moduleColor : themeColors.border,
+                        },
+                      ]}
+                      onPress={() => handleSetFeedbackSeconds(sec)}
+                    >
+                      <Text style={[
+                        styles.chipText,
+                        { color: feedbackSeconds === sec ? '#FFFFFF' : themeColors.textPrimary },
+                      ]}>
+                        {`${sec}s`}
                       </Text>
                     </HapticTouchable>
                   ))}
@@ -641,8 +729,8 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               title={t('navigation.trivia')}
               showBackButton
               onBackPress={() => setPhase('menu')}
-              backIcon="chevron-left"
               skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
             />
           }
           controlsBlock={<></>}
@@ -691,10 +779,8 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               moduleId={MODULE_ID}
               icon="star"
               title={t('navigation.trivia')}
-              showBackButton
-              onBackPress={handleQuit}
-              backIcon="gamepad"
               skipSafeArea
+              rightAccessory={renderGamepadButton(handleQuit, t('games.common.quit'))}
             />
           }
           controlsBlock={
@@ -706,6 +792,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
             />
           }
           contentBlock={
+            <View style={styles.playContent}>
             <ScrollView style={styles.playContent} contentContainerStyle={styles.playContentInner}>
               {/* Progress bar */}
               <View style={styles.progressContainer}>
@@ -800,36 +887,42 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
                 })}
               </View>
 
-              {/* Feedback message */}
+            </ScrollView>
+
+              {/* Feedback overlay popup */}
               {gameState.showingFeedback && lastAnswer && (
-                <View style={[
-                  styles.feedbackBanner,
-                  {
-                    backgroundColor: lastAnswer.isCorrect ? '#E8F5E9' : '#FFEBEE',
-                  },
-                ]}>
-                  <Icon
-                    name={lastAnswer.isCorrect ? 'checkmark-circle' : 'close-circle'}
-                    size={24}
-                    color={lastAnswer.isCorrect ? '#4CAF50' : '#F44336'}
-                  />
-                  <Text style={[
-                    styles.feedbackText,
-                    { color: lastAnswer.isCorrect ? '#2E7D32' : '#C62828' },
+                <View style={styles.feedbackOverlay} pointerEvents="none">
+                  <View style={styles.feedbackBackdrop} />
+                  <View style={[
+                    styles.feedbackPopup,
+                    {
+                      backgroundColor: lastAnswer.isCorrect ? '#E8F5E9' : '#FFEBEE',
+                      borderColor: lastAnswer.isCorrect ? '#4CAF50' : '#F44336',
+                    },
                   ]}>
-                    {lastAnswer.isCorrect
-                      ? t('games.trivia.correct')
-                      : t('games.trivia.wrong', { answer: currentQuestion.correctAnswer })
-                    }
-                  </Text>
-                  {lastAnswer.isCorrect && (
-                    <Text style={[styles.feedbackPoints, { color: '#2E7D32' }]}>
-                      +{lastAnswer.pointsEarned}
+                    <Icon
+                      name={lastAnswer.isCorrect ? 'checkmark-circle' : 'close-circle'}
+                      size={48}
+                      color={lastAnswer.isCorrect ? '#4CAF50' : '#F44336'}
+                    />
+                    <Text style={[
+                      styles.feedbackPopupText,
+                      { color: lastAnswer.isCorrect ? '#2E7D32' : '#C62828' },
+                    ]}>
+                      {lastAnswer.isCorrect
+                        ? t('games.trivia.correct')
+                        : t('games.trivia.wrong', { answer: currentQuestion.correctAnswer })
+                      }
                     </Text>
-                  )}
+                    {lastAnswer.isCorrect && (
+                      <Text style={[styles.feedbackPopupPoints, { color: '#2E7D32' }]}>
+                        +{lastAnswer.pointsEarned}
+                      </Text>
+                    )}
+                  </View>
                 </View>
               )}
-            </ScrollView>
+            </View>
           }
         />
       </View>
@@ -849,10 +942,8 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
             moduleId={MODULE_ID}
             icon="star"
             title={t('navigation.trivia')}
-            showBackButton
-            onBackPress={onBack}
-            backIcon="gamepad"
             skipSafeArea
+            rightAccessory={renderGamepadButton(onBack)}
           />
         }
         controlsBlock={<></>}
@@ -1152,7 +1243,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 2,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
   answerLabel: {
@@ -1164,21 +1255,43 @@ const styles = StyleSheet.create({
     ...typography.body,
     flex: 1,
   },
-  feedbackBanner: {
-    flexDirection: 'row',
+  // Feedback overlay popup
+  feedbackOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginTop: spacing.md,
+  },
+  feedbackBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  feedbackPopup: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
+    padding: spacing.xl,
+    alignItems: 'center',
+    width: '75%',
+    maxWidth: 320,
     gap: spacing.sm,
   },
-  feedbackText: {
-    ...typography.body,
-    fontWeight: '600',
-    flex: 1,
-  },
-  feedbackPoints: {
+  feedbackPopupText: {
     ...typography.body,
     fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  feedbackPopupPoints: {
+    ...typography.h3,
+    fontWeight: '700',
+  },
+
+  // Gamepad button (right side of ModuleHeader)
+  gamepadButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

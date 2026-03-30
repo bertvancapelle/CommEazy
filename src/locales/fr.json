@@ -3035,7 +3035,18 @@
       "status_correct": "bonne place",
       "status_present": "mauvaise place",
       "status_absent": "pas dans le mot",
-      "status_empty": "vide"
+      "status_empty": "vide",
+      "download": {
+        "checking": "Vérification...",
+        "title": "Télécharger la liste de mots",
+        "description": "Pour jouer à Woordraad, la liste de mots doit d'abord être téléchargée. Cela ne doit être fait qu'une seule fois.",
+        "size": "Environ 0,5 Mo",
+        "button": "Télécharger",
+        "downloading": "Téléchargement en cours...",
+        "pleaseWait": "Veuillez patienter",
+        "error": "Le téléchargement a échoué. Vérifiez votre connexion internet et réessayez.",
+        "complete": "Téléchargement terminé !"
+      }
     },
     "sudoku": {
       "description": "Remplissez la grille 9×9 avec des chiffres",
@@ -3088,6 +3099,7 @@
       "questionsPerRound": "Questions par manche",
       "timerSetting": "Minuteur par question",
       "timerOff": "Désactivé",
+      "feedbackTimer": "Afficher le résultat",
       "showStats": "Afficher les statistiques",
       "hideStats": "Masquer les statistiques",
       "timeUp": "Temps écoulé !",

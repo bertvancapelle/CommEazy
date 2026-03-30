@@ -203,6 +203,22 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
   }, [gameState, durationSeconds, t]);
 
   // ============================================================
+  // Gamepad button (RIGHT side — consistent across all games)
+  // ============================================================
+
+  const renderGamepadButton = useCallback((onPress: () => void, label?: string) => (
+    <HapticTouchable
+      hapticDisabled
+      style={styles.gamepadButton}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label || t('navigation.games')}
+    >
+      <Icon name="gamepad" size={28} color={themeConst.textOnPrimary} />
+    </HapticTouchable>
+  ), [t]);
+
+  // ============================================================
   // Render — Menu Phase
   // ============================================================
 
@@ -216,10 +232,8 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
               moduleId={MODULE_ID}
               icon="grid"
               title={t('navigation.memory')}
-              showBackButton
-              onBackPress={onBack}
-              backIcon="gamepad"
               skipSafeArea
+              rightAccessory={renderGamepadButton(onBack)}
             />
           }
           controlsBlock={<></>}
@@ -292,10 +306,8 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
             moduleId={MODULE_ID}
             icon="grid"
             title={t('navigation.memory')}
-            showBackButton
-            onBackPress={handleQuit}
-            backIcon="gamepad"
             skipSafeArea
+            rightAccessory={renderGamepadButton(handleQuit, t('games.common.quit'))}
           />
         }
         controlsBlock={
@@ -586,5 +598,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     textAlign: 'center',
+  },
+  gamepadButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

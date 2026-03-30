@@ -1,12 +1,13 @@
 /**
  * Download Service — Shared download service for game data
  *
- * Downloads trivia questions and woordy dictionaries from a public
- * GitHub Releases repository. Files are stored locally for offline play.
+ * Downloads trivia questions, woordy dictionaries, and woordraad word lists
+ * from a public GitHub Releases repository. Files are stored locally for
+ * offline play.
  *
  * Architecture:
  * - Bundle size: 0 MB (no questions/dictionaries bundled)
- * - Download per language: ~1.5 MB (trivia), ~2 MB (woordy dictionary)
+ * - Download per language: ~1.5 MB (trivia), ~2 MB (woordy), ~0.5 MB (woordraad)
  * - Stored in DocumentDirectory for persistence across app updates
  * - Language determined by app language setting
  *
@@ -33,6 +34,7 @@ const GAME_DATA_DIR = `${RNFS.DocumentDirectoryPath}/game-data`;
 /** Subdirectories per game type */
 const TRIVIA_DIR = `${GAME_DATA_DIR}/trivia`;
 const WOORDY_DIR = `${GAME_DATA_DIR}/woordy`;
+const WOORDRAAD_DIR = `${GAME_DATA_DIR}/woordraad`;
 
 /** AsyncStorage keys for tracking download metadata */
 const STORAGE_KEYS = {
@@ -40,6 +42,8 @@ const STORAGE_KEYS = {
   triviaLanguage: '@commeazy/trivia-data-language',
   woordyVersion: '@commeazy/woordy-data-version',
   woordyLanguage: '@commeazy/woordy-data-language',
+  woordraadVersion: '@commeazy/woordraad-data-version',
+  woordraadLanguage: '@commeazy/woordraad-data-language',
 } as const;
 
 /** Download timeout in ms */
@@ -52,7 +56,7 @@ const MAX_RETRIES = 3;
 // Types
 // ============================================================
 
-export type GameDataType = 'trivia' | 'woordy';
+export type GameDataType = 'trivia' | 'woordy' | 'woordraad';
 
 export interface DownloadProgress {
   /** Progress 0-1 */
@@ -87,7 +91,7 @@ export interface DataStatus {
  * Ensure game data directories exist
  */
 async function ensureDirectories(): Promise<void> {
-  const dirs = [GAME_DATA_DIR, TRIVIA_DIR, WOORDY_DIR];
+  const dirs = [GAME_DATA_DIR, TRIVIA_DIR, WOORDY_DIR, WOORDRAAD_DIR];
   for (const dir of dirs) {
     const exists = await RNFS.exists(dir);
     if (!exists) {
@@ -108,12 +112,36 @@ function getDownloadUrl(type: GameDataType, language: string): string {
   return `${GITHUB_REPO_BASE_URL}/${DATA_VERSION}/${type}-${language}.json`;
 }
 
+/** Directory mapping per game type */
+const TYPE_DIRS: Record<GameDataType, string> = {
+  trivia: TRIVIA_DIR,
+  woordy: WOORDY_DIR,
+  woordraad: WOORDRAAD_DIR,
+};
+
 /**
  * Get the local file path for a game data file
  */
 function getLocalPath(type: GameDataType, language: string): string {
-  const dir = type === 'trivia' ? TRIVIA_DIR : WOORDY_DIR;
-  return `${dir}/${type}-${language}.json`;
+  return `${TYPE_DIRS[type]}/${type}-${language}.json`;
+}
+
+// ============================================================
+// Storage Key Helper
+// ============================================================
+
+/**
+ * Get AsyncStorage keys for a game type
+ */
+function getStorageKeys(type: GameDataType): { versionKey: string; langKey: string } {
+  switch (type) {
+    case 'trivia':
+      return { versionKey: STORAGE_KEYS.triviaVersion, langKey: STORAGE_KEYS.triviaLanguage };
+    case 'woordy':
+      return { versionKey: STORAGE_KEYS.woordyVersion, langKey: STORAGE_KEYS.woordyLanguage };
+    case 'woordraad':
+      return { versionKey: STORAGE_KEYS.woordraadVersion, langKey: STORAGE_KEYS.woordraadLanguage };
+  }
 }
 
 // ============================================================
@@ -128,8 +156,7 @@ export async function checkDataStatus(
   language: string,
 ): Promise<DataStatus> {
   try {
-    const versionKey = type === 'trivia' ? STORAGE_KEYS.triviaVersion : STORAGE_KEYS.woordyVersion;
-    const langKey = type === 'trivia' ? STORAGE_KEYS.triviaLanguage : STORAGE_KEYS.woordyLanguage;
+    const { versionKey, langKey } = getStorageKeys(type);
 
     const [storedVersion, storedLanguage] = await Promise.all([
       AsyncStorage.getItem(versionKey),
@@ -206,8 +233,7 @@ export async function downloadGameData(
           }
 
           // Persist metadata
-          const versionKey = type === 'trivia' ? STORAGE_KEYS.triviaVersion : STORAGE_KEYS.woordyVersion;
-          const langKey = type === 'trivia' ? STORAGE_KEYS.triviaLanguage : STORAGE_KEYS.woordyLanguage;
+          const { versionKey, langKey } = getStorageKeys(type);
           await AsyncStorage.multiSet([
             [versionKey, DATA_VERSION],
             [langKey, language],
@@ -321,6 +347,24 @@ async function validateDownloadedFile(
       return true;
     }
 
+    if (type === 'woordraad') {
+      // Expect an object with "targetWords" and "validGuesses" arrays
+      if (!data.targetWords || !Array.isArray(data.targetWords)) {
+        console.warn('[DownloadService] Woordraad file missing "targetWords" array');
+        return false;
+      }
+      if (!data.validGuesses || !Array.isArray(data.validGuesses)) {
+        console.warn('[DownloadService] Woordraad file missing "validGuesses" array');
+        return false;
+      }
+      // Spot-check that arrays contain strings of expected length
+      if (data.targetWords.length > 0 && typeof data.targetWords[0] !== 'string') {
+        console.warn('[DownloadService] Woordraad targetWords should contain strings');
+        return false;
+      }
+      return true;
+    }
+
     return false;
   } catch (error) {
     console.warn('[DownloadService] File validation failed:', error);
@@ -373,15 +417,14 @@ export async function readLocalGameData<T>(
  */
 export async function clearGameData(type: GameDataType): Promise<void> {
   try {
-    const dir = type === 'trivia' ? TRIVIA_DIR : WOORDY_DIR;
+    const dir = TYPE_DIRS[type];
     const exists = await RNFS.exists(dir);
     if (exists) {
       await RNFS.unlink(dir);
       await RNFS.mkdir(dir);
     }
 
-    const versionKey = type === 'trivia' ? STORAGE_KEYS.triviaVersion : STORAGE_KEYS.woordyVersion;
-    const langKey = type === 'trivia' ? STORAGE_KEYS.triviaLanguage : STORAGE_KEYS.woordyLanguage;
+    const { versionKey, langKey } = getStorageKeys(type);
     await AsyncStorage.multiRemove([versionKey, langKey]);
 
     console.info(`[DownloadService] Cleared ${type} data`);
@@ -395,7 +438,7 @@ export async function clearGameData(type: GameDataType): Promise<void> {
  */
 export async function getStorageUsage(type: GameDataType): Promise<number> {
   try {
-    const dir = type === 'trivia' ? TRIVIA_DIR : WOORDY_DIR;
+    const dir = TYPE_DIRS[type];
     const exists = await RNFS.exists(dir);
     if (!exists) return 0;
 

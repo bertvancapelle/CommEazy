@@ -2869,7 +2869,18 @@
       "status_correct": "rätt plats",
       "status_present": "fel plats",
       "status_absent": "inte i ordet",
-      "status_empty": "tom"
+      "status_empty": "tom",
+      "download": {
+        "checking": "Kontrollerar...",
+        "title": "Ladda ner ordlista",
+        "description": "För att spela Woordraad måste ordlistan laddas ner först. Det behöver bara göras en gång.",
+        "size": "Cirka 0,5 MB",
+        "button": "Ladda ner",
+        "downloading": "Laddar ner...",
+        "pleaseWait": "Vänligen vänta",
+        "error": "Nedladdningen misslyckades. Kontrollera din internetanslutning och försök igen.",
+        "complete": "Nedladdning klar!"
+      }
     },
     "sudoku": {
       "description": "Fyll 9×9-rutnätet med siffror",
@@ -2922,6 +2933,7 @@
       "questionsPerRound": "Frågor per omgång",
       "timerSetting": "Timer per fråga",
       "timerOff": "Av",
+      "feedbackTimer": "Visa resultat",
       "showStats": "Visa statistik",
       "hideStats": "Dölj statistik",
       "timeUp": "Tiden är ute!",

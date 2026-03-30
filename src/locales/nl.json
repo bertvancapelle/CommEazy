@@ -3038,7 +3038,18 @@
       "status_correct": "juiste plek",
       "status_present": "andere plek",
       "status_absent": "niet in woord",
-      "status_empty": "leeg"
+      "status_empty": "leeg",
+      "download": {
+        "checking": "Even kijken...",
+        "title": "Woordenlijst downloaden",
+        "description": "Om Woordraad te spelen moeten eerst de woorden worden gedownload. Dit hoeft maar één keer.",
+        "size": "Ongeveer 0,5 MB",
+        "button": "Downloaden",
+        "downloading": "Bezig met downloaden...",
+        "pleaseWait": "Even geduld alstublieft",
+        "error": "Het downloaden is mislukt. Controleer je internetverbinding en probeer het opnieuw.",
+        "complete": "Download voltooid!"
+      }
     },
     "sudoku": {
       "description": "Vul het 9×9 raster met cijfers",
@@ -3091,6 +3102,7 @@
       "questionsPerRound": "Vragen per ronde",
       "timerSetting": "Timer per vraag",
       "timerOff": "Uit",
+      "feedbackTimer": "Resultaat tonen",
       "showStats": "Toon statistieken",
       "hideStats": "Verberg statistieken",
       "timeUp": "Tijd voorbij!",

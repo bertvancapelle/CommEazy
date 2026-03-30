@@ -2893,7 +2893,18 @@
       "status_correct": "właściwe miejsce",
       "status_present": "złe miejsce",
       "status_absent": "nie ma w słowie",
-      "status_empty": "puste"
+      "status_empty": "puste",
+      "download": {
+        "checking": "Sprawdzanie...",
+        "title": "Pobierz listę słów",
+        "description": "Aby zagrać w Woordraad, trzeba najpierw pobrać listę słów. Wystarczy to zrobić raz.",
+        "size": "Około 0,5 MB",
+        "button": "Pobierz",
+        "downloading": "Pobieranie...",
+        "pleaseWait": "Proszę czekać",
+        "error": "Pobieranie nie powiodło się. Sprawdź połączenie z internetem i spróbuj ponownie.",
+        "complete": "Pobieranie zakończone!"
+      }
     },
     "sudoku": {
       "description": "Wypełnij siatkę 9×9 liczbami",
@@ -2946,6 +2957,7 @@
       "questionsPerRound": "Pytań na rundę",
       "timerSetting": "Timer na pytanie",
       "timerOff": "Wyłączony",
+      "feedbackTimer": "Pokaż wynik",
       "showStats": "Pokaż statystyki",
       "hideStats": "Ukryj statystyki",
       "timeUp": "Czas minął!",

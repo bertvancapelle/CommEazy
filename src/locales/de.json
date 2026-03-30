@@ -3034,7 +3034,18 @@
       "status_correct": "richtige Stelle",
       "status_present": "falsche Stelle",
       "status_absent": "nicht im Wort",
-      "status_empty": "leer"
+      "status_empty": "leer",
+      "download": {
+        "checking": "Wird überprüft...",
+        "title": "Wortliste herunterladen",
+        "description": "Um Woordraad zu spielen, muss zuerst die Wortliste heruntergeladen werden. Das muss nur einmal geschehen.",
+        "size": "Etwa 0,5 MB",
+        "button": "Herunterladen",
+        "downloading": "Wird heruntergeladen...",
+        "pleaseWait": "Bitte warten",
+        "error": "Der Download ist fehlgeschlagen. Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+        "complete": "Download abgeschlossen!"
+      }
     },
     "sudoku": {
       "description": "Fülle das 9×9-Raster mit Zahlen",
@@ -3087,6 +3098,7 @@
       "questionsPerRound": "Fragen pro Runde",
       "timerSetting": "Timer pro Frage",
       "timerOff": "Aus",
+      "feedbackTimer": "Ergebnis anzeigen",
       "showStats": "Statistiken anzeigen",
       "hideStats": "Statistiken ausblenden",
       "timeUp": "Zeit abgelaufen!",

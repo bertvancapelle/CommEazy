@@ -2869,7 +2869,18 @@
       "status_correct": "rigtig plads",
       "status_present": "forkert plads",
       "status_absent": "ikke i ordet",
-      "status_empty": "tom"
+      "status_empty": "tom",
+      "download": {
+        "checking": "Tjekker...",
+        "title": "Download ordliste",
+        "description": "For at spille Woordraad skal ordlisten downloades først. Det skal kun gøres én gang.",
+        "size": "Ca. 0,5 MB",
+        "button": "Download",
+        "downloading": "Downloader...",
+        "pleaseWait": "Vent venligst",
+        "error": "Downloaden mislykkedes. Tjek din internetforbindelse og prøv igen.",
+        "complete": "Download fuldført!"
+      }
     },
     "sudoku": {
       "description": "Udfyld 9×9-gitteret med tal",
@@ -2922,6 +2933,7 @@
       "questionsPerRound": "Spørgsmål pr. runde",
       "timerSetting": "Timer pr. spørgsmål",
       "timerOff": "Fra",
+      "feedbackTimer": "Vis resultat",
       "showStats": "Vis statistik",
       "hideStats": "Skjul statistik",
       "timeUp": "Tiden er udløbet!",
