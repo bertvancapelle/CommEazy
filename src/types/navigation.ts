@@ -41,7 +41,8 @@ export type StaticNavigationDestination =
   | 'sudoku'       // Sudoku puzzle
   | 'solitaire'    // Card solitaire
   | 'memory'       // Memory matching game
-  | 'trivia';      // Trivia quiz
+  | 'trivia'       // Trivia quiz
+  | 'woordy';      // Word board game (Scrabble-style)
 
 /**
  * Dynamic navigation destinations for country-specific modules
@@ -163,7 +164,8 @@ export type ModuleIconType =
   | 'gameSudoku'   // Sudoku (grid puzzle)
   | 'gameCards'    // Solitaire (card game)
   | 'gameMemory'   // Memory (matching game)
-  | 'gameTrivia';  // Trivia (quiz)
+  | 'gameTrivia'   // Trivia (quiz)
+  | 'gameWoordy';  // Woordy (word board game)
 
 /**
  * Map ModuleIconType to IconName for unified SVG icons
@@ -218,6 +220,8 @@ export function mapModuleIconToIconName(type: ModuleIconType): IconName {
       return 'eye';
     case 'gameTrivia':
       return 'star';
+    case 'gameWoordy':
+      return 'document-text';
     default:
       return 'info'; // fallback
   }
@@ -268,6 +272,7 @@ export const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit
   solitaire: { labelKey: 'navigation.solitaire', icon: 'gameCards' },
   memory: { labelKey: 'navigation.memory', icon: 'gameMemory' },
   trivia: { labelKey: 'navigation.trivia', icon: 'gameTrivia' },
+  woordy: { labelKey: 'navigation.woordy', icon: 'gameWoordy' },
 };
 
 // ============================================================

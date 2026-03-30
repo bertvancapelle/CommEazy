@@ -1214,6 +1214,7 @@
     "solitaire": "Solitaire",
     "memory": "Memory",
     "trivia": "Trivia",
+    "woordy": "Woordy",
     "menu_button": "Menu button",
     "menu_button_hint": "Tap to open the navigation menu. Long press to reposition.",
     "drag_mode_enabled": "Drag mode active. Drag the button to a new position.",
@@ -3078,7 +3079,53 @@
       "card": "Flip card"
     },
     "trivia": {
-      "description": "Test your knowledge"
+      "description": "Test your knowledge",
+      "title": "Trivia",
+      "howToPlay": "Answer multiple choice questions and earn points. The harder the question, the more points!",
+      "chooseCategory": "Choose a category",
+      "question": "Question {{number}}/{{total}}",
+      "correct": "Correct!",
+      "wrong": "Sorry, the correct answer was: {{answer}}",
+      "correctAnswers": "Correct answers",
+      "maxScore": "Maximum score",
+      "questionsPerRound": "Questions per round",
+      "timerSetting": "Timer per question",
+      "timerOff": "Off",
+      "showStats": "Show statistics",
+      "hideStats": "Hide statistics",
+      "timeUp": "Time's up!",
+      "themes": {
+        "mixed": "All",
+        "general": "General Knowledge",
+        "science": "Science & Nature",
+        "history": "History & Geography",
+        "arts": "Arts & Culture",
+        "entertainment": "Entertainment",
+        "sports": "Sports",
+        "animals": "Animals & Nature"
+      }
+    },
+    "woordy": {
+      "description": "Letter board game",
+      "title": "Woordy",
+      "howToPlay": "Place words on the board and earn points. Bonus fields give extra points! Tap a tile then tap the board to place it.",
+      "quitTitle": "Leave game?",
+      "quitMessage": "Your current progress will be lost.",
+      "invalidWord": "Invalid word found. Check your letters.",
+      "passTitle": "Skip turn?",
+      "passMessage": "Your turn will be skipped.",
+      "pass": "Pass",
+      "resignTitle": "Resign?",
+      "resignMessage": "You will lose the game if you resign.",
+      "resign": "Resign",
+      "yourScore": "Your score",
+      "opponentScore": "Opponent",
+      "wordsPlayed": "Words played",
+      "points": "points",
+      "confirm": "Confirm",
+      "you": "You",
+      "opponent": "Opponent",
+      "tilesLeft": "Tiles left"
     }
   }
 }

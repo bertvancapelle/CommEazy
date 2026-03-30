@@ -1,7 +1,7 @@
 /**
  * Game Type Definitions — CommEazy
  *
- * Shared types for all 5 games: Woordraad, Sudoku, Solitaire, Memory, Trivia.
+ * Shared types for all 6 games: Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy.
  *
  * @see Prompt_0_Games_Architecture.md for design rationale
  * @see models/GameSession.ts for WatermelonDB model
@@ -15,7 +15,7 @@
 /**
  * Game type identifiers — matches ModuleColorId game entries
  */
-export type GameType = 'woordraad' | 'sudoku' | 'solitaire' | 'memory' | 'trivia';
+export type GameType = 'woordraad' | 'sudoku' | 'solitaire' | 'memory' | 'trivia' | 'woordy';
 
 /**
  * All available game types as const array (for iteration)
@@ -26,12 +26,13 @@ export const ALL_GAME_TYPES: GameType[] = [
   'solitaire',
   'memory',
   'trivia',
+  'woordy',
 ];
 
 /**
  * Games that support multiplayer via XMPP
  */
-export const MULTIPLAYER_GAMES: GameType[] = ['woordraad', 'memory', 'trivia'];
+export const MULTIPLAYER_GAMES: GameType[] = ['woordraad', 'memory', 'trivia', 'woordy'];
 
 /**
  * Games that are solo-only

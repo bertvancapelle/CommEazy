@@ -1235,6 +1235,7 @@
     "solitaire": "Solitaire",
     "memory": "Memory",
     "trivia": "Trivia",
+    "woordy": "Woordy",
     "menu_button": "Menu knop",
     "menu_button_hint": "Tik om het navigatiemenu te openen. Houd lang ingedrukt om te verplaatsen.",
     "drag_mode_enabled": "Sleepstand actief. Sleep de knop naar een nieuwe positie.",
@@ -3078,7 +3079,53 @@
       "card": "Kaart omdraaien"
     },
     "trivia": {
-      "description": "Test je kennis"
+      "description": "Test je kennis",
+      "title": "Trivia",
+      "howToPlay": "Beantwoord meerkeuze vragen en verdien punten. Hoe moeilijker de vraag, hoe meer punten!",
+      "chooseCategory": "Kies een categorie",
+      "question": "Vraag {{number}}/{{total}}",
+      "correct": "Correct!",
+      "wrong": "Helaas, het juiste antwoord was: {{answer}}",
+      "correctAnswers": "Goede antwoorden",
+      "maxScore": "Maximale score",
+      "questionsPerRound": "Vragen per ronde",
+      "timerSetting": "Timer per vraag",
+      "timerOff": "Uit",
+      "showStats": "Toon statistieken",
+      "hideStats": "Verberg statistieken",
+      "timeUp": "Tijd voorbij!",
+      "themes": {
+        "mixed": "Alles",
+        "general": "Algemene Kennis",
+        "science": "Wetenschap & Natuur",
+        "history": "Geschiedenis & Aardrijkskunde",
+        "arts": "Kunst & Cultuur",
+        "entertainment": "Entertainment",
+        "sports": "Sport",
+        "animals": "Dieren & Natuur"
+      }
+    },
+    "woordy": {
+      "description": "Bordspel met letters",
+      "title": "Woordy",
+      "howToPlay": "Leg woorden op het bord en verdien punten. Bonusvelden geven extra punten! Tik op een tegel en dan op het bord om te plaatsen.",
+      "quitTitle": "Spel verlaten?",
+      "quitMessage": "Je huidige voortgang gaat verloren.",
+      "invalidWord": "Ongeldig woord gevonden. Controleer je letters.",
+      "passTitle": "Beurt overslaan?",
+      "passMessage": "Je beurt wordt overgeslagen.",
+      "pass": "Passen",
+      "resignTitle": "Opgeven?",
+      "resignMessage": "Je verliest het spel als je opgeeft.",
+      "resign": "Opgeven",
+      "yourScore": "Jouw score",
+      "opponentScore": "Tegenstander",
+      "wordsPlayed": "Woorden gespeeld",
+      "points": "punten",
+      "confirm": "Bevestig",
+      "you": "Jij",
+      "opponent": "Tegenstander",
+      "tilesLeft": "Tegels over"
     }
   }
 }

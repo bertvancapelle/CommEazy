@@ -1208,6 +1208,7 @@
     "solitaire": "Solitario",
     "memory": "Memory",
     "trivia": "Quiz",
+    "woordy": "Woordy",
     "menu_button": "Pulsante menu",
     "menu_button_hint": "Tocca per aprire il menu di navigazione. Tieni premuto per spostare.",
     "drag_mode_enabled": "Modalità trascinamento attiva. Trascina il pulsante in una nuova posizione.",
@@ -3016,7 +3017,53 @@
       "card": "Gira carta"
     },
     "trivia": {
-      "description": "Metti alla prova le tue conoscenze"
+      "description": "Metti alla prova le tue conoscenze",
+      "title": "Trivia",
+      "howToPlay": "Rispondi a domande a scelta multipla e guadagna punti. Più è difficile la domanda, più punti guadagni!",
+      "chooseCategory": "Scegli una categoria",
+      "question": "Domanda {{number}}/{{total}}",
+      "correct": "Corretto!",
+      "wrong": "Purtroppo, la risposta corretta era: {{answer}}",
+      "correctAnswers": "Risposte corrette",
+      "maxScore": "Punteggio massimo",
+      "questionsPerRound": "Domande per round",
+      "timerSetting": "Timer per domanda",
+      "timerOff": "Disattivato",
+      "showStats": "Mostra statistiche",
+      "hideStats": "Nascondi statistiche",
+      "timeUp": "Tempo scaduto!",
+      "themes": {
+        "mixed": "Tutto",
+        "general": "Cultura Generale",
+        "science": "Scienza e Natura",
+        "history": "Storia e Geografia",
+        "arts": "Arte e Cultura",
+        "entertainment": "Intrattenimento",
+        "sports": "Sport",
+        "animals": "Animali e Natura"
+      }
+    },
+    "woordy": {
+      "description": "Gioco di lettere",
+      "title": "Woordy",
+      "howToPlay": "Posiziona parole sulla tavola e guadagna punti. I campi bonus danno punti extra! Tocca una tessera e poi la tavola per posizionarla.",
+      "quitTitle": "Uscire dal gioco?",
+      "quitMessage": "Il tuo progresso attuale andrà perso.",
+      "invalidWord": "Parola non valida trovata. Controlla le tue lettere.",
+      "passTitle": "Saltare il turno?",
+      "passMessage": "Il tuo turno verrà saltato.",
+      "pass": "Passa",
+      "resignTitle": "Arrendersi?",
+      "resignMessage": "Perderai la partita se ti arrendi.",
+      "resign": "Arrendersi",
+      "yourScore": "Il tuo punteggio",
+      "opponentScore": "Avversario",
+      "wordsPlayed": "Parole giocate",
+      "points": "punti",
+      "confirm": "Conferma",
+      "you": "Tu",
+      "opponent": "Avversario",
+      "tilesLeft": "Tessere rimanenti"
     }
   }
 }

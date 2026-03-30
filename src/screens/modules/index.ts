@@ -39,6 +39,8 @@ export { WoordraadScreen } from './WoordraadScreen';
 export { SudokuScreen } from './SudokuScreen';
 export { SolitaireScreen } from './SolitaireScreen';
 export { MemoryScreen } from './MemoryScreen';
+export { TriviaScreen } from './TriviaScreen';
+export { WoordyScreen } from './WoordyScreen';
 
 // Help module placeholder
 export { HelpPlaceholderScreen } from './HelpPlaceholderScreen';

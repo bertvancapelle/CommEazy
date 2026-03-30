@@ -1211,6 +1211,7 @@
     "solitaire": "Solitaire",
     "memory": "Memory",
     "trivia": "Quiz",
+    "woordy": "Woordy",
     "menu_button": "Bouton menu",
     "menu_button_hint": "Appuyez pour ouvrir le menu. Appuyez longuement pour déplacer.",
     "drag_mode_enabled": "Mode déplacement actif. Faites glisser le bouton vers une nouvelle position.",
@@ -3075,7 +3076,53 @@
       "card": "Retourner la carte"
     },
     "trivia": {
-      "description": "Testez vos connaissances"
+      "description": "Testez vos connaissances",
+      "title": "Trivia",
+      "howToPlay": "Répondez à des questions à choix multiples et gagnez des points. Plus la question est difficile, plus vous gagnez de points !",
+      "chooseCategory": "Choisissez une catégorie",
+      "question": "Question {{number}}/{{total}}",
+      "correct": "Correct !",
+      "wrong": "Désolé, la bonne réponse était : {{answer}}",
+      "correctAnswers": "Bonnes réponses",
+      "maxScore": "Score maximum",
+      "questionsPerRound": "Questions par manche",
+      "timerSetting": "Minuteur par question",
+      "timerOff": "Désactivé",
+      "showStats": "Afficher les statistiques",
+      "hideStats": "Masquer les statistiques",
+      "timeUp": "Temps écoulé !",
+      "themes": {
+        "mixed": "Tout",
+        "general": "Culture générale",
+        "science": "Sciences & Nature",
+        "history": "Histoire & Géographie",
+        "arts": "Arts & Culture",
+        "entertainment": "Divertissement",
+        "sports": "Sports",
+        "animals": "Animaux & Nature"
+      }
+    },
+    "woordy": {
+      "description": "Jeu de lettres",
+      "title": "Woordy",
+      "howToPlay": "Placez des mots sur le plateau et gagnez des points. Les cases bonus donnent des points supplémentaires ! Touchez une lettre puis le plateau pour la placer.",
+      "quitTitle": "Quitter la partie ?",
+      "quitMessage": "Votre progression actuelle sera perdue.",
+      "invalidWord": "Mot invalide trouvé. Vérifiez vos lettres.",
+      "passTitle": "Passer le tour ?",
+      "passMessage": "Votre tour sera passé.",
+      "pass": "Passer",
+      "resignTitle": "Abandonner ?",
+      "resignMessage": "Vous perdrez la partie si vous abandonnez.",
+      "resign": "Abandonner",
+      "yourScore": "Votre score",
+      "opponentScore": "Adversaire",
+      "wordsPlayed": "Mots joués",
+      "points": "points",
+      "confirm": "Confirmer",
+      "you": "Vous",
+      "opponent": "Adversaire",
+      "tilesLeft": "Lettres restantes"
     }
   }
 }

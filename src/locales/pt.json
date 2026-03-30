@@ -1236,6 +1236,7 @@
     "solitaire": "Paciência",
     "memory": "Memória",
     "trivia": "Quiz",
+    "woordy": "Woordy",
     "menu_button": "Botão de menu",
     "menu_button_hint": "Toque para abrir o menu de navegação. Pressione longamente para mover.",
     "drag_mode_enabled": "Modo de arrastar ativo. Arraste o botão para uma nova posição.",
@@ -3082,7 +3083,53 @@
       "card": "Virar carta"
     },
     "trivia": {
-      "description": "Teste os seus conhecimentos"
+      "description": "Teste os seus conhecimentos",
+      "title": "Trivia",
+      "howToPlay": "Responda a perguntas de escolha múltipla e ganhe pontos. Quanto mais difícil a pergunta, mais pontos!",
+      "chooseCategory": "Escolha uma categoria",
+      "question": "Pergunta {{number}}/{{total}}",
+      "correct": "Correto!",
+      "wrong": "Lamentamos, a resposta correta era: {{answer}}",
+      "correctAnswers": "Respostas corretas",
+      "maxScore": "Pontuação máxima",
+      "questionsPerRound": "Perguntas por ronda",
+      "timerSetting": "Temporizador por pergunta",
+      "timerOff": "Desligado",
+      "showStats": "Mostrar estatísticas",
+      "hideStats": "Ocultar estatísticas",
+      "timeUp": "Tempo esgotado!",
+      "themes": {
+        "mixed": "Tudo",
+        "general": "Conhecimento Geral",
+        "science": "Ciência e Natureza",
+        "history": "História e Geografia",
+        "arts": "Arte e Cultura",
+        "entertainment": "Entretenimento",
+        "sports": "Desporto",
+        "animals": "Animais e Natureza"
+      }
+    },
+    "woordy": {
+      "description": "Jogo de tabuleiro com letras",
+      "title": "Woordy",
+      "howToPlay": "Coloque palavras no tabuleiro e ganhe pontos. Campos de bónus dão pontos extra! Toque numa peça e depois no tabuleiro para a colocar.",
+      "quitTitle": "Sair do jogo?",
+      "quitMessage": "O seu progresso atual será perdido.",
+      "invalidWord": "Palavra inválida encontrada. Verifique as suas letras.",
+      "passTitle": "Passar a vez?",
+      "passMessage": "A sua vez será passada.",
+      "pass": "Passar",
+      "resignTitle": "Desistir?",
+      "resignMessage": "Perderá o jogo se desistir.",
+      "resign": "Desistir",
+      "yourScore": "A sua pontuação",
+      "opponentScore": "Adversário",
+      "wordsPlayed": "Palavras jogadas",
+      "points": "pontos",
+      "confirm": "Confirmar",
+      "you": "Você",
+      "opponent": "Adversário",
+      "tilesLeft": "Peças restantes"
     }
   }
 }

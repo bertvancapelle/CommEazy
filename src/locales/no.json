@@ -1134,6 +1134,7 @@
     "solitaire": "Kabal",
     "memory": "Memory",
     "trivia": "Quiz",
+    "woordy": "Woordy",
     "menu_button": "Menyknapp",
     "menu_button_hint": "Trykk for å åpne navigasjonsmenyen. Hold lenge for å flytte.",
     "drag_mode_enabled": "Dra-modus aktiv. Dra knappen til en ny posisjon.",
@@ -2939,7 +2940,53 @@
       "card": "Snu kort"
     },
     "trivia": {
-      "description": "Test kunnskapen din"
+      "description": "Test kunnskapen din",
+      "title": "Trivia",
+      "howToPlay": "Svar på flervalgsspørsmål og tjen poeng. Jo vanskeligere spørsmålet, desto flere poeng!",
+      "chooseCategory": "Velg en kategori",
+      "question": "Spørsmål {{number}}/{{total}}",
+      "correct": "Riktig!",
+      "wrong": "Beklager, riktig svar var: {{answer}}",
+      "correctAnswers": "Riktige svar",
+      "maxScore": "Maksimal poengsum",
+      "questionsPerRound": "Spørsmål per runde",
+      "timerSetting": "Tidtaker per spørsmål",
+      "timerOff": "Av",
+      "showStats": "Vis statistikk",
+      "hideStats": "Skjul statistikk",
+      "timeUp": "Tiden er ute!",
+      "themes": {
+        "mixed": "Alle",
+        "general": "Allmennkunnskap",
+        "science": "Vitenskap og Natur",
+        "history": "Historie og Geografi",
+        "arts": "Kunst og Kultur",
+        "entertainment": "Underholdning",
+        "sports": "Sport",
+        "animals": "Dyr og Natur"
+      }
+    },
+    "woordy": {
+      "description": "Brettspill med bokstaver",
+      "title": "Woordy",
+      "howToPlay": "Legg ord på brettet og tjen poeng. Bonusfelt gir ekstra poeng! Trykk på en brikke og deretter på brettet for å plassere den.",
+      "quitTitle": "Forlate spillet?",
+      "quitMessage": "Din nåværende fremgang vil gå tapt.",
+      "invalidWord": "Ugyldig ord funnet. Sjekk bokstavene dine.",
+      "passTitle": "Hoppe over tur?",
+      "passMessage": "Din tur vil bli hoppet over.",
+      "pass": "Pass",
+      "resignTitle": "Gi opp?",
+      "resignMessage": "Du taper spillet hvis du gir opp.",
+      "resign": "Gi opp",
+      "yourScore": "Din poengsum",
+      "opponentScore": "Motstander",
+      "wordsPlayed": "Ord spilt",
+      "points": "poeng",
+      "confirm": "Bekreft",
+      "you": "Du",
+      "opponent": "Motstander",
+      "tilesLeft": "Brikker igjen"
     }
   }
 }

@@ -1125,6 +1125,7 @@
     "solitaire": "Pasjans",
     "memory": "Memory",
     "trivia": "Quiz",
+    "woordy": "Woordy",
     "menu_button": "Przycisk menu",
     "menu_button_hint": "Dotknij, aby otworzyć menu nawigacji. Przytrzymaj, aby przenieść.",
     "drag_mode_enabled": "Tryb przeciągania aktywny. Przeciągnij przycisk w nowe miejsce.",
@@ -2933,7 +2934,53 @@
       "card": "Odwróć kartę"
     },
     "trivia": {
-      "description": "Sprawdź swoją wiedzę"
+      "description": "Sprawdź swoją wiedzę",
+      "title": "Trivia",
+      "howToPlay": "Odpowiadaj na pytania wielokrotnego wyboru i zdobywaj punkty. Im trudniejsze pytanie, tym więcej punktów!",
+      "chooseCategory": "Wybierz kategorię",
+      "question": "Pytanie {{number}}/{{total}}",
+      "correct": "Dobrze!",
+      "wrong": "Niestety, prawidłowa odpowiedź to: {{answer}}",
+      "correctAnswers": "Poprawne odpowiedzi",
+      "maxScore": "Maksymalny wynik",
+      "questionsPerRound": "Pytań na rundę",
+      "timerSetting": "Timer na pytanie",
+      "timerOff": "Wyłączony",
+      "showStats": "Pokaż statystyki",
+      "hideStats": "Ukryj statystyki",
+      "timeUp": "Czas minął!",
+      "themes": {
+        "mixed": "Wszystko",
+        "general": "Wiedza Ogólna",
+        "science": "Nauka i Przyroda",
+        "history": "Historia i Geografia",
+        "arts": "Sztuka i Kultura",
+        "entertainment": "Rozrywka",
+        "sports": "Sport",
+        "animals": "Zwierzęta i Przyroda"
+      }
+    },
+    "woordy": {
+      "description": "Gra planszowa z literami",
+      "title": "Woordy",
+      "howToPlay": "Układaj słowa na planszy i zdobywaj punkty. Pola bonusowe dają dodatkowe punkty! Dotknij kafelka, a następnie planszy, aby go umieścić.",
+      "quitTitle": "Opuścić grę?",
+      "quitMessage": "Twój bieżący postęp zostanie utracony.",
+      "invalidWord": "Znaleziono nieprawidłowe słowo. Sprawdź swoje litery.",
+      "passTitle": "Pominąć turę?",
+      "passMessage": "Twoja tura zostanie pominięta.",
+      "pass": "Pas",
+      "resignTitle": "Poddać się?",
+      "resignMessage": "Przegrasz grę, jeśli się poddasz.",
+      "resign": "Poddaj się",
+      "yourScore": "Twój wynik",
+      "opponentScore": "Przeciwnik",
+      "wordsPlayed": "Zagrane słowa",
+      "points": "punkty",
+      "confirm": "Potwierdź",
+      "you": "Ty",
+      "opponent": "Przeciwnik",
+      "tilesLeft": "Pozostałe kafelki"
     }
   }
 }

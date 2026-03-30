@@ -1104,6 +1104,7 @@
     "solitaire": "Kabale",
     "memory": "Memory",
     "trivia": "Quiz",
+    "woordy": "Woordy",
     "menu_button": "Menuknap",
     "menu_button_hint": "Tryk for at åbne navigationsmenuen.",
     "drag_mode_enabled": "Træk-tilstand aktiv.",
@@ -2909,7 +2910,53 @@
       "card": "Vend kort"
     },
     "trivia": {
-      "description": "Test din viden"
+      "description": "Test din viden",
+      "title": "Trivia",
+      "howToPlay": "Besvar multiple choice-spørgsmål og optjen point. Jo sværere spørgsmålet, desto flere point!",
+      "chooseCategory": "Vælg en kategori",
+      "question": "Spørgsmål {{number}}/{{total}}",
+      "correct": "Korrekt!",
+      "wrong": "Desværre, det rigtige svar var: {{answer}}",
+      "correctAnswers": "Rigtige svar",
+      "maxScore": "Maksimal score",
+      "questionsPerRound": "Spørgsmål pr. runde",
+      "timerSetting": "Timer pr. spørgsmål",
+      "timerOff": "Fra",
+      "showStats": "Vis statistik",
+      "hideStats": "Skjul statistik",
+      "timeUp": "Tiden er udløbet!",
+      "themes": {
+        "mixed": "Alle",
+        "general": "Almen Viden",
+        "science": "Videnskab & Natur",
+        "history": "Historie & Geografi",
+        "arts": "Kunst & Kultur",
+        "entertainment": "Underholdning",
+        "sports": "Sport",
+        "animals": "Dyr & Natur"
+      }
+    },
+    "woordy": {
+      "description": "Brætspil med bogstaver",
+      "title": "Woordy",
+      "howToPlay": "Læg ord på brættet og optjen point. Bonusfelter giver ekstra point! Tryk på en brik og derefter på brættet for at placere den.",
+      "quitTitle": "Forlade spillet?",
+      "quitMessage": "Din nuværende fremgang vil gå tabt.",
+      "invalidWord": "Ugyldigt ord fundet. Tjek dine bogstaver.",
+      "passTitle": "Spring tur over?",
+      "passMessage": "Din tur vil blive sprunget over.",
+      "pass": "Pas",
+      "resignTitle": "Give op?",
+      "resignMessage": "Du taber spillet, hvis du giver op.",
+      "resign": "Giv op",
+      "yourScore": "Din score",
+      "opponentScore": "Modstander",
+      "wordsPlayed": "Ord spillet",
+      "points": "point",
+      "confirm": "Bekræft",
+      "you": "Du",
+      "opponent": "Modstander",
+      "tilesLeft": "Brikker tilbage"
     }
   }
 }

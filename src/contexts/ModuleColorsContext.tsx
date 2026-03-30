@@ -79,6 +79,7 @@ export const CUSTOMIZABLE_MODULES: ModuleColorId[] = [
   'solitaire',
   'memory',
   'trivia',
+  'woordy',
 ];
 
 /**
@@ -113,6 +114,7 @@ export const MODULE_LABELS: Record<ModuleColorId, string> = {
   solitaire: 'navigation.solitaire',
   memory: 'navigation.memory',
   trivia: 'navigation.trivia',
+  woordy: 'navigation.woordy',
 };
 
 // ============================================================

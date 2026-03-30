@@ -1,5 +1,5 @@
 /**
- * GameLobbyScreen — Game lobby showing 5 game tiles
+ * GameLobbyScreen — Game lobby showing 6 game tiles
  *
  * Replaces GamePlaceholderScreen. Shows accessible tiles for each game
  * using the SpelTegel component within ModuleScreenLayout.
@@ -26,6 +26,8 @@ import { WoordraadScreen } from './WoordraadScreen';
 import { SudokuScreen } from './SudokuScreen';
 import { SolitaireScreen } from './SolitaireScreen';
 import { MemoryScreen } from './MemoryScreen';
+import { TriviaScreen } from './TriviaScreen';
+import { WoordyScreen } from './WoordyScreen';
 
 // ============================================================
 // Types
@@ -46,6 +48,7 @@ const GAME_DESCRIPTION_KEYS: Record<GameType, string> = {
   solitaire: 'games.solitaire.description',
   memory: 'games.memory.description',
   trivia: 'games.trivia.description',
+  woordy: 'games.woordy.description',
 };
 
 // ============================================================
@@ -78,8 +81,12 @@ export function GameLobbyScreen({ moduleId: _moduleId }: GameLobbyScreenProps) {
   if (activeGame === 'memory') {
     return <MemoryScreen onBack={handleBackToLobby} />;
   }
-  // Future session: trivia
-  // if (activeGame === 'trivia') return <TriviaScreen onBack={handleBackToLobby} />;
+  if (activeGame === 'trivia') {
+    return <TriviaScreen onBack={handleBackToLobby} />;
+  }
+  if (activeGame === 'woordy') {
+    return <WoordyScreen onBack={handleBackToLobby} />;
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>

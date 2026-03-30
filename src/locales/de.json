@@ -1211,6 +1211,7 @@
     "solitaire": "Solitaire",
     "memory": "Memory",
     "trivia": "Quizspiel",
+    "woordy": "Woordy",
     "menu_button": "Menü-Taste",
     "menu_button_hint": "Tippen zum Öffnen des Navigationsmenüs. Lang drücken zum Verschieben.",
     "drag_mode_enabled": "Verschiebemodus aktiv. Ziehe die Taste an eine neue Position.",
@@ -3074,7 +3075,53 @@
       "card": "Karte umdrehen"
     },
     "trivia": {
-      "description": "Teste dein Wissen"
+      "description": "Teste dein Wissen",
+      "title": "Trivia",
+      "howToPlay": "Beantworte Multiple-Choice-Fragen und sammle Punkte. Je schwieriger die Frage, desto mehr Punkte!",
+      "chooseCategory": "Wähle eine Kategorie",
+      "question": "Frage {{number}}/{{total}}",
+      "correct": "Richtig!",
+      "wrong": "Leider falsch, die richtige Antwort war: {{answer}}",
+      "correctAnswers": "Richtige Antworten",
+      "maxScore": "Maximale Punktzahl",
+      "questionsPerRound": "Fragen pro Runde",
+      "timerSetting": "Timer pro Frage",
+      "timerOff": "Aus",
+      "showStats": "Statistiken anzeigen",
+      "hideStats": "Statistiken ausblenden",
+      "timeUp": "Zeit abgelaufen!",
+      "themes": {
+        "mixed": "Alle",
+        "general": "Allgemeinwissen",
+        "science": "Wissenschaft & Natur",
+        "history": "Geschichte & Geographie",
+        "arts": "Kunst & Kultur",
+        "entertainment": "Unterhaltung",
+        "sports": "Sport",
+        "animals": "Tiere & Natur"
+      }
+    },
+    "woordy": {
+      "description": "Buchstaben-Brettspiel",
+      "title": "Woordy",
+      "howToPlay": "Lege Wörter auf das Brett und verdiene Punkte. Bonusfelder geben Extrapunkte! Tippe auf einen Buchstaben und dann auf das Brett.",
+      "quitTitle": "Spiel verlassen?",
+      "quitMessage": "Dein aktueller Fortschritt geht verloren.",
+      "invalidWord": "Ungültiges Wort gefunden. Überprüfe deine Buchstaben.",
+      "passTitle": "Zug überspringen?",
+      "passMessage": "Dein Zug wird übersprungen.",
+      "pass": "Passen",
+      "resignTitle": "Aufgeben?",
+      "resignMessage": "Du verlierst das Spiel, wenn du aufgibst.",
+      "resign": "Aufgeben",
+      "yourScore": "Deine Punkte",
+      "opponentScore": "Gegner",
+      "wordsPlayed": "Gelegte Wörter",
+      "points": "Punkte",
+      "confirm": "Bestätigen",
+      "you": "Du",
+      "opponent": "Gegner",
+      "tilesLeft": "Buchstaben übrig"
     }
   }
 }

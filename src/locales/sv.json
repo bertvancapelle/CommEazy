@@ -1104,6 +1104,7 @@
     "solitaire": "Patiens",
     "memory": "Memory",
     "trivia": "Frågesport",
+    "woordy": "Woordy",
     "menu_button": "Menyknapp",
     "menu_button_hint": "Tryck för att öppna navigeringsmenyn.",
     "drag_mode_enabled": "Dra-läge aktivt.",
@@ -2909,7 +2910,53 @@
       "card": "Vänd kort"
     },
     "trivia": {
-      "description": "Testa dina kunskaper"
+      "description": "Testa dina kunskaper",
+      "title": "Trivia",
+      "howToPlay": "Svara på flervalsfrågor och tjäna poäng. Ju svårare frågan, desto fler poäng!",
+      "chooseCategory": "Välj en kategori",
+      "question": "Fråga {{number}}/{{total}}",
+      "correct": "Rätt!",
+      "wrong": "Tyvärr, rätt svar var: {{answer}}",
+      "correctAnswers": "Rätta svar",
+      "maxScore": "Maximal poäng",
+      "questionsPerRound": "Frågor per omgång",
+      "timerSetting": "Timer per fråga",
+      "timerOff": "Av",
+      "showStats": "Visa statistik",
+      "hideStats": "Dölj statistik",
+      "timeUp": "Tiden är ute!",
+      "themes": {
+        "mixed": "Alla",
+        "general": "Allmänkunskap",
+        "science": "Vetenskap & Natur",
+        "history": "Historia & Geografi",
+        "arts": "Konst & Kultur",
+        "entertainment": "Underhållning",
+        "sports": "Sport",
+        "animals": "Djur & Natur"
+      }
+    },
+    "woordy": {
+      "description": "Brädspel med bokstäver",
+      "title": "Woordy",
+      "howToPlay": "Lägg ord på brädet och tjäna poäng. Bonusfält ger extrapoäng! Tryck på en bricka och sedan på brädet för att placera den.",
+      "quitTitle": "Lämna spelet?",
+      "quitMessage": "Dina nuvarande framsteg kommer att gå förlorade.",
+      "invalidWord": "Ogiltigt ord hittat. Kontrollera dina bokstäver.",
+      "passTitle": "Hoppa över tur?",
+      "passMessage": "Din tur kommer att hoppas över.",
+      "pass": "Pass",
+      "resignTitle": "Ge upp?",
+      "resignMessage": "Du förlorar spelet om du ger upp.",
+      "resign": "Ge upp",
+      "yourScore": "Din poäng",
+      "opponentScore": "Motståndare",
+      "wordsPlayed": "Ord spelade",
+      "points": "poäng",
+      "confirm": "Bekräfta",
+      "you": "Du",
+      "opponent": "Motståndare",
+      "tilesLeft": "Brickor kvar"
     }
   }
 }

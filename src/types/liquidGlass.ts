@@ -111,7 +111,8 @@ export type ModuleColorId =
   | 'sudoku'
   | 'solitaire'
   | 'memory'
-  | 'trivia';
+  | 'trivia'
+  | 'woordy';
 
 /**
  * Tint color definition for a module
@@ -303,6 +304,12 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
     moduleId: 'trivia',
     tintColor: '#FF8F00',      // Gold/amber
     fallbackColor: '#FF8F00',
+    lightColor: '#FFFFFF',
+  },
+  woordy: {
+    moduleId: 'woordy',
+    tintColor: '#6A1B9A',      // Deep purple
+    fallbackColor: '#6A1B9A',
     lightColor: '#FFFFFF',
   },
 };
