@@ -31,6 +31,7 @@ import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ReducedMotionProvider } from '@/contexts/ReducedMotionContext';
 import { PresenceProvider } from '@/contexts/PresenceContext';
 import { PlaylistImportProvider } from '@/contexts/PlaylistImportContext';
+import { GameProvider } from '@/contexts/GameContext';
 import { FieldTextStyleProvider } from '@/contexts/FieldTextStyleContext';
 import { FloatingImportIndicator } from '@/components';
 import { DevModePanel } from '@/components/DevModePanel';
@@ -124,11 +125,13 @@ export default function App() {
                         <FavoriteLocationsProvider>
                           <CallProvider>
                             <PlaylistImportProvider>
-                              <HoldToNavigateProvider>
-                                <AppNavigator />
-                                <FloatingImportIndicator />
-                                {__DEV__ && <DevModePanel />}
-                              </HoldToNavigateProvider>
+                              <GameProvider>
+                                <HoldToNavigateProvider>
+                                  <AppNavigator />
+                                  <FloatingImportIndicator />
+                                  {__DEV__ && <DevModePanel />}
+                                </HoldToNavigateProvider>
+                              </GameProvider>
                             </PlaylistImportProvider>
                           </CallProvider>
                         </FavoriteLocationsProvider>

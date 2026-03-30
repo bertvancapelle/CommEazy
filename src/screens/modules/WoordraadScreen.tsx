@@ -17,6 +17,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
@@ -97,6 +98,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
   const moduleColor = useModuleColor(MODULE_ID);
+  const insets = useSafeAreaInsets();
 
   // Game session
   const {
@@ -258,6 +260,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
               title={t('navigation.woordraad')}
               showBackButton
               onBackPress={onBack}
+              backIcon="gamepad"
               skipSafeArea
             />
           }
@@ -338,6 +341,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
             title={t('navigation.woordraad')}
             showBackButton
             onBackPress={handleQuit}
+            backIcon="gamepad"
             skipSafeArea
           />
         }
@@ -346,13 +350,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
             moduleId={MODULE_ID}
             showTimer
             timer={durationSeconds}
-            actions={[
-              {
-                icon: 'close',
-                label: t('games.common.quit'),
-                onPress: handleQuit,
-              },
-            ]}
+            actions={[]}
           />
         }
         contentBlock={
@@ -426,7 +424,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
             </View>
 
             {/* On-screen keyboard */}
-            <View style={styles.keyboardContainer}>
+            <View style={[styles.keyboardContainer, { paddingBottom: spacing.md + insets.bottom }]}>
               {KEYBOARD_ROWS.map((row, rowIndex) => (
                 <View key={rowIndex} style={styles.keyboardRow}>
                   {row.map((key) => {

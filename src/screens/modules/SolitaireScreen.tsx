@@ -241,6 +241,7 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
               title={t('navigation.solitaire')}
               showBackButton
               onBackPress={onBack}
+              backIcon="gamepad"
               skipSafeArea
             />
           }
@@ -316,6 +317,7 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
             title={t('navigation.solitaire')}
             showBackButton
             onBackPress={handleQuit}
+            backIcon="gamepad"
             skipSafeArea
           />
         }
@@ -334,11 +336,6 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
                 icon: 'star' as const,
                 label: t('games.solitaire.hint'),
                 onPress: handleHint,
-              },
-              {
-                icon: 'close' as const,
-                label: t('games.common.quit'),
-                onPress: handleQuit,
               },
             ]}
           />

@@ -66,6 +66,8 @@ export interface ModuleHeaderProps {
   showBackButton?: boolean;
   /** Callback when back button is pressed */
   onBackPress?: () => void;
+  /** Custom icon for the back button (default: "chevron-left") */
+  backIcon?: IconName;
   /** Accessibility label for back button (default: "Terug") */
   backButtonLabel?: string;
   /** Custom logo component to render instead of icon (for source attribution) */
@@ -116,6 +118,7 @@ export function ModuleHeader({
   currentSource,
   showBackButton = false,
   onBackPress,
+  backIcon = 'chevron-left',
   backButtonLabel = 'Terug',
   customLogo,
   style,
@@ -238,7 +241,7 @@ export function ModuleHeader({
                 accessibilityRole="button"
                 accessibilityLabel={backButtonLabel}
               >
-                <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
+                <Icon name={backIcon} size={28} color={colors.textOnPrimary} />
               </HapticTouchable>
             )}
             {customLogo ? (

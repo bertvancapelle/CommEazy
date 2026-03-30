@@ -15,6 +15,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
@@ -82,6 +83,7 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
   const moduleColor = useModuleColor(MODULE_ID);
+  const insets = useSafeAreaInsets();
 
   // Game session
   const {
@@ -220,6 +222,7 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
               title={t('navigation.sudoku')}
               showBackButton
               onBackPress={onBack}
+              backIcon="gamepad"
               skipSafeArea
             />
           }
@@ -295,6 +298,7 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
             title={t('navigation.sudoku')}
             showBackButton
             onBackPress={handleQuit}
+            backIcon="gamepad"
             skipSafeArea
           />
         }
@@ -308,11 +312,6 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
                 icon: 'star',
                 label: t('games.common.hint'),
                 onPress: handleHint,
-              },
-              {
-                icon: 'close',
-                label: t('games.common.quit'),
-                onPress: handleQuit,
               },
             ]}
           />
@@ -408,7 +407,7 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
             </View>
 
             {/* Number pad + controls */}
-            <View style={styles.controlsContainer}>
+            <View style={[styles.controlsContainer, { paddingBottom: spacing.md + insets.bottom }]}>
               {/* Notes mode toggle */}
               <View style={styles.modeRow}>
                 <HapticTouchable

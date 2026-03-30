@@ -218,6 +218,7 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
               title={t('navigation.memory')}
               showBackButton
               onBackPress={onBack}
+              backIcon="gamepad"
               skipSafeArea
             />
           }
@@ -293,6 +294,7 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
             title={t('navigation.memory')}
             showBackButton
             onBackPress={handleQuit}
+            backIcon="gamepad"
             skipSafeArea
           />
         }
@@ -301,13 +303,7 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
             moduleId={MODULE_ID}
             showTimer
             timer={durationSeconds}
-            actions={[
-              {
-                icon: 'close' as const,
-                label: t('games.common.quit'),
-                onPress: handleQuit,
-              },
-            ]}
+            actions={[]}
           />
         }
         contentBlock={
