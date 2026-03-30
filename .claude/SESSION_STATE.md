@@ -6,31 +6,41 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-30
-- **Sessie:** Games Session 8 — Woordraad UX bugfixes
-- **Commit:** `59766d9` fix: Woordraad ENTER button right-aligned + game over overlay touch fix
+- **Sessie:** Games Session 9 — Icon consistency + backspace icon + grid button removal
+- **Commit:** `6b06dbe` fix: game screen icon consistency + backspace icon + grid button removal
 
 ## Voltooide Taken Deze Sessie
 
-1. **Woordraad ENTER knop positie en kleur:**
-   - `KEYBOARD_ROWS[2]`: ENTER verplaatst van links naar rechts, DEL naar links
-   - ENTER key: `backgroundColor: moduleColor` (groen), witte ✓ tekst, `hapticType: 'success'`
-   - Consistent met standaard iOS toetsenbord-conventies (bevestigknop rechtsonder)
+1. **Game screen icon consistentie:**
+   - MemoryScreen: `icon="grid"` → `icon="eye"` (2 instances) — matcht navigation icon
+   - SolitaireScreen: `icon="layers"` → `icon="list"` (2 instances) — matcht navigation icon
+   - Overige 4 spellen (Trivia, Woordraad, Sudoku, Woordy) waren al consistent
 
-2. **Game Over overlay bevroren (LiquidGlassModule.swift):**
-   - Root cause: `layoutSubviews` riep `updateGlassEffect()` aan bij elke bounds-wijziging
-   - Tijdens Modal slide-animatie werd het glass container view herhaaldelijk verwijderd en opnieuw gemaakt
-   - Dit verstoorde de subview-volgorde van React Native children → `hitTest` kon ze niet meer bereiken
-   - Fix: Glass effect alleen aanmaken bij EERSTE layout (`glassEffectView == nil`), niet bij elke bounds change
-   - Auto Layout constraints zorgen al voor correcte sizing bij volgende layouts
+2. **Backspace icoon toegevoegd aan Icon.tsx:**
+   - Nieuw `'backspace'` type in `IconName` union
+   - SVG: rechthoek met pijlvormige linkerkant + X erin (standaard ⌫ symbool)
+   - WoordraadScreen DEL-toets: `icon="close"` → `icon="backspace"` (was fallback cirkel)
+
+3. **ModuleHeader rightAccessory render volgorde:**
+   - rightAccessory rendert nu NA MediaIndicator en Grid button (was ervoor)
+   - ASCII diagram in ModuleHeader.tsx bijgewerkt
+
+4. **Grid button verwijderd uit alle game screens:**
+   - `showGridButton={false}` op alle 19 ModuleHeader instances in 6 game screens
+   - Gamepad knop als `rightAccessory` (navigeert terug naar GameLobby)
 
 ## Openstaande Taken
 
-1. **Nederlandse vertaling trivia-nl.json (GEBRUIKER HANDELT DIT AF):**
+1. **Trivia UI verbeteringen (plan beschikbaar):**
+   - Plan: `delegated-petting-lecun.md`
+   - 4 wijzigingen: gamepad rechts, feedback overlay, configureerbare timer, AsyncStorage persistentie
+   - Nog NIET gestart
+
+2. **Nederlandse vertaling trivia-nl.json (GEBRUIKER HANDELT DIT AF):**
    - 4.216 vragen moeten vertaald worden van Engels naar Nederlands
-   - Huidige trivia-nl.json bevat Engelse content als placeholder
    - Script `translate_to_dutch.py` staat klaar maar vereist Anthropic API credits
 
-2. **Eerder openstaand (ongewijzigd):**
+3. **Eerder openstaand (ongewijzigd):**
    - Dead code categorie 2 — 8 componenten voor ongebouwde features
    - 3 transparent modals met LiquidGlassView te valideren
    - Uncommitted changes in `MediaIndicator.tsx` + `AppleMusicScreen.tsx`
@@ -47,23 +57,19 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| ENTER rechtsonder | Consistent met iOS keyboard conventies — bevestigknop altijd rechtsonder |
-| ENTER moduleColor achtergrond | Visueel onderscheidbaar als actie-knop, senior-herkenbaar (groen = bevestigen) |
-| Glass effect alleen bij eerste layout | Auto Layout constraints zorgen voor correcte sizing — recreatie is overbodig en veroorzaakt race condition |
-| `lastBounds` property verwijderd | Dead code na fix — niet meer nodig |
+| Header icons matchen navigation icons | Consistentie voor senioren — zelfde icoon in homescreen EN module header |
+| `showGridButton={false}` voor alle games | Games hebben gamepad-knop als rightAccessory, grid-knop is overbodig |
+| rightAccessory NA grid button | Visuele volgorde: MediaIndicator → Grid → extra knoppen (rechts-naar-links prioriteit) |
+| Backspace icoon i.p.v. close/X | DEL-toets had fallback cirkel (close niet in IconName), backspace ⌫ is herkenbaar |
 
 ## Context voor Volgende Sessie
 
-- **LiquidGlassModule.swift:** `layoutSubviews` maakt glass effect nu alleen bij `glassEffectView == nil`. Prop changes (tintColorHex didSet etc.) triggeren `updateGlassEffect()` nog steeds normaal.
+- **Icon.tsx:** 131 icon namen, nieuwste = `'backspace'` (lijn 2246)
+- **Game screen ModuleHeader pattern:** `showGridButton={false}` + `rightAccessory={renderGamepadButton(onBack)}`
 - **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
 - **Engines locatie:** `src/engines/{woordraad,sudoku,solitaire,memory,trivia,woordy}/`
 - **Screens locatie:** `src/screens/modules/{Woordraad,Sudoku,Solitaire,Memory,Trivia,Woordy}Screen.tsx`
 - **Download service:** `src/services/downloadService.ts` — gedeeld voor trivia + woordy + woordraad
-- **Woordraad data flow:** WoordraadScreen init → checkDataStatus → loadWordLists (lokaal) OF download prompt → downloadGameData → loadWordLists → menu phase
-- **Word bank:** In-memory cache (wordBank.ts), getTargetWords() + getValidGuesses() na loadWordLists()
-- **Alle 11 woordraad woordenlijsten geüpload naar GitHub Release v1.0** (nl, en, de, fr, es, it, no, sv, da, pt, pl)
-- **Game data scripts:** `scripts/generate_woordraad.py` (word list gen) + `game-data/fetch_opentdb.py` (trivia fetcher) + `game-data/translate_to_dutch.py` (vertaler)
-- **Trivia settings:** AsyncStorage `@commeazy/trivia_settings` — difficulty, questionsPerRound, timerSeconds, feedbackSeconds
 - **GameLobbyScreen:** Alle 6 routes actief, iterates over ALL_GAME_TYPES
 - **WatermelonDB schema:** Versie 30 (game_sessions + game_stats tabellen)
 - **XMPP game protocol:** Types gedefinieerd, hooks gebouwd, sendGameStanza is stub
