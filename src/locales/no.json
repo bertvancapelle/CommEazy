@@ -2955,6 +2955,17 @@
       "showStats": "Vis statistikk",
       "hideStats": "Skjul statistikk",
       "timeUp": "Tiden er ute!",
+      "download": {
+        "checking": "Sjekker...",
+        "title": "Last ned spørsmål",
+        "description": "For å spille Trivia må spørsmålene lastes ned først. Dette trenger bare å gjøres én gang.",
+        "size": "Omtrent 1,5 MB",
+        "button": "Last ned",
+        "downloading": "Laster ned...",
+        "pleaseWait": "Vennligst vent",
+        "error": "Nedlastingen mislyktes. Kontroller internettforbindelsen din og prøv igjen.",
+        "complete": "Nedlasting fullført!"
+      },
       "themes": {
         "mixed": "Alle",
         "general": "Allmennkunnskap",

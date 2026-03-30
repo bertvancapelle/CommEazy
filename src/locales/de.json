@@ -3090,6 +3090,17 @@
       "showStats": "Statistiken anzeigen",
       "hideStats": "Statistiken ausblenden",
       "timeUp": "Zeit abgelaufen!",
+      "download": {
+        "checking": "Wird überprüft...",
+        "title": "Fragen herunterladen",
+        "description": "Um Trivia zu spielen, müssen zuerst die Fragen heruntergeladen werden. Dies muss nur einmal geschehen.",
+        "size": "Ungefähr 1,5 MB",
+        "button": "Herunterladen",
+        "downloading": "Wird heruntergeladen...",
+        "pleaseWait": "Bitte warten",
+        "error": "Download fehlgeschlagen. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+        "complete": "Download abgeschlossen!"
+      },
       "themes": {
         "mixed": "Alle",
         "general": "Allgemeinwissen",

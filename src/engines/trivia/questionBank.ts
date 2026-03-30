@@ -1,14 +1,24 @@
 /**
  * Trivia Question Bank — CommEazy
  *
- * Bundled starter questions in OpenTDB format.
- * Future: on-demand download per language via downloadService.
+ * Reads trivia questions from locally downloaded JSON files.
+ * Questions are downloaded per language via downloadService on first launch.
  *
- * Source: OpenTDB (CC BY-SA 4.0)
+ * File format (trivia-{lang}.json):
+ * {
+ *   "version": "1.0",
+ *   "language": "nl",
+ *   "questionCount": 200,
+ *   "questions": [ { id, category, theme, difficulty, question, correctAnswer, incorrectAnswers } ]
+ * }
+ *
+ * Source: OpenTDB (CC BY-SA 4.0) — translated per language
  * @see https://opentdb.com/
+ * @see src/services/downloadService.ts
  */
 
 import type { TriviaQuestion, TriviaDifficulty, TriviaTheme } from './types';
+import { readLocalGameData } from '@/services/downloadService';
 
 // ============================================================
 // OpenTDB Category → Theme Mapping
@@ -49,444 +59,75 @@ export function mapCategoryToTheme(category: string): TriviaTheme {
 }
 
 // ============================================================
-// Bundled Starter Questions
+// Downloaded Questions File Format
 // ============================================================
 
+interface TriviaDataFile {
+  version: string;
+  language: string;
+  questionCount: number;
+  questions: TriviaQuestion[];
+}
+
+// ============================================================
+// In-Memory Cache
+// ============================================================
+
+let cachedQuestions: TriviaQuestion[] = [];
+let cachedLanguage: string | null = null;
+
 /**
- * Curated starter questions — enough for several rounds.
- * Designed for seniors: clear language, well-known topics.
+ * Load questions from local storage into memory.
+ * Called once when TriviaScreen detects data is available.
+ *
+ * @param language - Language code (e.g. 'nl', 'en')
+ * @returns true if questions were loaded successfully
  */
-const BUNDLED_QUESTIONS: TriviaQuestion[] = [
-  // === GENERAL KNOWLEDGE — Easy ===
-  {
-    id: 'gen-e-01',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'easy',
-    question: 'How many days are there in a week?',
-    correctAnswer: '7',
-    incorrectAnswers: ['5', '6', '10'],
-  },
-  {
-    id: 'gen-e-02',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'easy',
-    question: 'What is the color of a ripe banana?',
-    correctAnswer: 'Yellow',
-    incorrectAnswers: ['Red', 'Blue', 'Green'],
-  },
-  {
-    id: 'gen-e-03',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'easy',
-    question: 'How many continents are there on Earth?',
-    correctAnswer: '7',
-    incorrectAnswers: ['5', '6', '8'],
-  },
-  {
-    id: 'gen-e-04',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'easy',
-    question: 'What do bees produce?',
-    correctAnswer: 'Honey',
-    incorrectAnswers: ['Milk', 'Sugar', 'Butter'],
-  },
-  {
-    id: 'gen-e-05',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'easy',
-    question: 'In which direction does the sun rise?',
-    correctAnswer: 'East',
-    incorrectAnswers: ['West', 'North', 'South'],
-  },
+export async function loadQuestions(language: string): Promise<boolean> {
+  // Return cached if already loaded for this language
+  if (cachedLanguage === language && cachedQuestions.length > 0) {
+    return true;
+  }
 
-  // === GENERAL KNOWLEDGE — Medium ===
-  {
-    id: 'gen-m-01',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'medium',
-    question: 'How many bones are in the adult human body?',
-    correctAnswer: '206',
-    incorrectAnswers: ['186', '256', '312'],
-  },
-  {
-    id: 'gen-m-02',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'medium',
-    question: 'What is the chemical symbol for gold?',
-    correctAnswer: 'Au',
-    incorrectAnswers: ['Ag', 'Fe', 'Go'],
-  },
-  {
-    id: 'gen-m-03',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'medium',
-    question: 'Which planet is known as the Red Planet?',
-    correctAnswer: 'Mars',
-    incorrectAnswers: ['Venus', 'Jupiter', 'Saturn'],
-  },
+  try {
+    const data = await readLocalGameData<TriviaDataFile>('trivia', language);
+    if (!data || !data.questions || data.questions.length === 0) {
+      console.warn(`[QuestionBank] No questions found for language: ${language}`);
+      return false;
+    }
 
-  // === GENERAL KNOWLEDGE — Hard ===
-  {
-    id: 'gen-h-01',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'hard',
-    question: 'In what year did the Berlin Wall fall?',
-    correctAnswer: '1989',
-    incorrectAnswers: ['1987', '1991', '1985'],
-  },
-  {
-    id: 'gen-h-02',
-    category: 'General Knowledge',
-    theme: 'general',
-    difficulty: 'hard',
-    question: 'What is the smallest country in the world by area?',
-    correctAnswer: 'Vatican City',
-    incorrectAnswers: ['Monaco', 'San Marino', 'Liechtenstein'],
-  },
+    cachedQuestions = data.questions;
+    cachedLanguage = language;
+    console.info(`[QuestionBank] Loaded ${cachedQuestions.length} questions for ${language}`);
+    return true;
+  } catch (error) {
+    console.error(`[QuestionBank] Failed to load questions for ${language}:`, error);
+    return false;
+  }
+}
 
-  // === SCIENCE & NATURE — Easy ===
-  {
-    id: 'sci-e-01',
-    category: 'Science & Nature',
-    theme: 'science',
-    difficulty: 'easy',
-    question: 'What gas do plants absorb from the air?',
-    correctAnswer: 'Carbon dioxide',
-    incorrectAnswers: ['Oxygen', 'Nitrogen', 'Hydrogen'],
-  },
-  {
-    id: 'sci-e-02',
-    category: 'Science & Nature',
-    theme: 'science',
-    difficulty: 'easy',
-    question: 'What is the boiling point of water in Celsius?',
-    correctAnswer: '100°C',
-    incorrectAnswers: ['90°C', '110°C', '80°C'],
-  },
-  {
-    id: 'sci-e-03',
-    category: 'Science & Nature',
-    theme: 'science',
-    difficulty: 'easy',
-    question: 'How many legs does a spider have?',
-    correctAnswer: '8',
-    incorrectAnswers: ['6', '10', '4'],
-  },
-
-  // === SCIENCE — Medium ===
-  {
-    id: 'sci-m-01',
-    category: 'Science & Nature',
-    theme: 'science',
-    difficulty: 'medium',
-    question: 'What is the closest planet to the Sun?',
-    correctAnswer: 'Mercury',
-    incorrectAnswers: ['Venus', 'Earth', 'Mars'],
-  },
-  {
-    id: 'sci-m-02',
-    category: 'Science & Nature',
-    theme: 'science',
-    difficulty: 'medium',
-    question: 'What is the hardest natural substance on Earth?',
-    correctAnswer: 'Diamond',
-    incorrectAnswers: ['Iron', 'Granite', 'Quartz'],
-  },
-
-  // === SCIENCE — Hard ===
-  {
-    id: 'sci-h-01',
-    category: 'Science & Nature',
-    theme: 'science',
-    difficulty: 'hard',
-    question: 'What is the powerhouse of the cell?',
-    correctAnswer: 'Mitochondria',
-    incorrectAnswers: ['Nucleus', 'Ribosome', 'Golgi apparatus'],
-  },
-
-  // === HISTORY & GEOGRAPHY — Easy ===
-  {
-    id: 'his-e-01',
-    category: 'History',
-    theme: 'history',
-    difficulty: 'easy',
-    question: 'What is the capital of France?',
-    correctAnswer: 'Paris',
-    incorrectAnswers: ['London', 'Berlin', 'Madrid'],
-  },
-  {
-    id: 'his-e-02',
-    category: 'Geography',
-    theme: 'history',
-    difficulty: 'easy',
-    question: 'Which ocean is the largest?',
-    correctAnswer: 'Pacific Ocean',
-    incorrectAnswers: ['Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean'],
-  },
-  {
-    id: 'his-e-03',
-    category: 'Geography',
-    theme: 'history',
-    difficulty: 'easy',
-    question: 'What is the capital of the Netherlands?',
-    correctAnswer: 'Amsterdam',
-    incorrectAnswers: ['Rotterdam', 'The Hague', 'Utrecht'],
-  },
-
-  // === HISTORY — Medium ===
-  {
-    id: 'his-m-01',
-    category: 'History',
-    theme: 'history',
-    difficulty: 'medium',
-    question: 'Who painted the Mona Lisa?',
-    correctAnswer: 'Leonardo da Vinci',
-    incorrectAnswers: ['Michelangelo', 'Raphael', 'Rembrandt'],
-  },
-  {
-    id: 'his-m-02',
-    category: 'History',
-    theme: 'history',
-    difficulty: 'medium',
-    question: 'In which year did World War II end?',
-    correctAnswer: '1945',
-    incorrectAnswers: ['1944', '1946', '1943'],
-  },
-  {
-    id: 'his-m-03',
-    category: 'Geography',
-    theme: 'history',
-    difficulty: 'medium',
-    question: 'Which river flows through London?',
-    correctAnswer: 'Thames',
-    incorrectAnswers: ['Seine', 'Rhine', 'Danube'],
-  },
-
-  // === HISTORY — Hard ===
-  {
-    id: 'his-h-01',
-    category: 'History',
-    theme: 'history',
-    difficulty: 'hard',
-    question: 'Who was the first person to walk on the Moon?',
-    correctAnswer: 'Neil Armstrong',
-    incorrectAnswers: ['Buzz Aldrin', 'Yuri Gagarin', 'John Glenn'],
-  },
-
-  // === ARTS & CULTURE — Easy ===
-  {
-    id: 'art-e-01',
-    category: 'Art',
-    theme: 'arts',
-    difficulty: 'easy',
-    question: 'What are the three primary colors?',
-    correctAnswer: 'Red, blue, yellow',
-    incorrectAnswers: ['Red, green, blue', 'Red, yellow, green', 'Blue, yellow, green'],
-  },
-  {
-    id: 'art-e-02',
-    category: 'Entertainment: Music',
-    theme: 'arts',
-    difficulty: 'easy',
-    question: 'How many strings does a standard guitar have?',
-    correctAnswer: '6',
-    incorrectAnswers: ['4', '8', '5'],
-  },
-
-  // === ARTS — Medium ===
-  {
-    id: 'art-m-01',
-    category: 'Art',
-    theme: 'arts',
-    difficulty: 'medium',
-    question: 'Who composed the "Four Seasons"?',
-    correctAnswer: 'Antonio Vivaldi',
-    incorrectAnswers: ['Johann Sebastian Bach', 'Wolfgang Amadeus Mozart', 'Ludwig van Beethoven'],
-  },
-  {
-    id: 'art-m-02',
-    category: 'Entertainment: Books',
-    theme: 'arts',
-    difficulty: 'medium',
-    question: 'Who wrote "Romeo and Juliet"?',
-    correctAnswer: 'William Shakespeare',
-    incorrectAnswers: ['Charles Dickens', 'Jane Austen', 'Mark Twain'],
-  },
-
-  // === ENTERTAINMENT — Easy ===
-  {
-    id: 'ent-e-01',
-    category: 'Entertainment: Film',
-    theme: 'entertainment',
-    difficulty: 'easy',
-    question: 'What is the name of the fairy in Peter Pan?',
-    correctAnswer: 'Tinker Bell',
-    incorrectAnswers: ['Cinderella', 'Snow White', 'Ariel'],
-  },
-  {
-    id: 'ent-e-02',
-    category: 'Entertainment: Film',
-    theme: 'entertainment',
-    difficulty: 'easy',
-    question: 'Which movie features a character named Simba?',
-    correctAnswer: 'The Lion King',
-    incorrectAnswers: ['Finding Nemo', 'Bambi', 'The Jungle Book'],
-  },
-
-  // === ENTERTAINMENT — Medium ===
-  {
-    id: 'ent-m-01',
-    category: 'Entertainment: Television',
-    theme: 'entertainment',
-    difficulty: 'medium',
-    question: 'In which city is the TV series "Friends" set?',
-    correctAnswer: 'New York',
-    incorrectAnswers: ['Los Angeles', 'Chicago', 'Boston'],
-  },
-  {
-    id: 'ent-m-02',
-    category: 'Entertainment: Music',
-    theme: 'entertainment',
-    difficulty: 'medium',
-    question: 'Which band was John Lennon a member of?',
-    correctAnswer: 'The Beatles',
-    incorrectAnswers: ['The Rolling Stones', 'The Who', 'Led Zeppelin'],
-  },
-
-  // === ENTERTAINMENT — Hard ===
-  {
-    id: 'ent-h-01',
-    category: 'Entertainment: Film',
-    theme: 'entertainment',
-    difficulty: 'hard',
-    question: 'Who directed the movie "Schindler\'s List"?',
-    correctAnswer: 'Steven Spielberg',
-    incorrectAnswers: ['Martin Scorsese', 'Francis Ford Coppola', 'Ridley Scott'],
-  },
-
-  // === SPORTS — Easy ===
-  {
-    id: 'spo-e-01',
-    category: 'Sports',
-    theme: 'sports',
-    difficulty: 'easy',
-    question: 'How many players are on a football (soccer) team?',
-    correctAnswer: '11',
-    incorrectAnswers: ['9', '10', '12'],
-  },
-  {
-    id: 'spo-e-02',
-    category: 'Sports',
-    theme: 'sports',
-    difficulty: 'easy',
-    question: 'In which sport do you use a racket and a shuttlecock?',
-    correctAnswer: 'Badminton',
-    incorrectAnswers: ['Tennis', 'Squash', 'Table Tennis'],
-  },
-
-  // === SPORTS — Medium ===
-  {
-    id: 'spo-m-01',
-    category: 'Sports',
-    theme: 'sports',
-    difficulty: 'medium',
-    question: 'In which country were the first modern Olympic Games held in 1896?',
-    correctAnswer: 'Greece',
-    incorrectAnswers: ['France', 'Italy', 'England'],
-  },
-  {
-    id: 'spo-m-02',
-    category: 'Sports',
-    theme: 'sports',
-    difficulty: 'medium',
-    question: 'How many sets are needed to win a tennis match at Wimbledon (men)?',
-    correctAnswer: '3 out of 5',
-    incorrectAnswers: ['2 out of 3', '4 out of 7', '5 out of 9'],
-  },
-
-  // === ANIMALS — Easy ===
-  {
-    id: 'ani-e-01',
-    category: 'Animals',
-    theme: 'animals',
-    difficulty: 'easy',
-    question: 'What is the largest animal on Earth?',
-    correctAnswer: 'Blue whale',
-    incorrectAnswers: ['Elephant', 'Giraffe', 'Hippopotamus'],
-  },
-  {
-    id: 'ani-e-02',
-    category: 'Animals',
-    theme: 'animals',
-    difficulty: 'easy',
-    question: 'What do caterpillars turn into?',
-    correctAnswer: 'Butterflies',
-    incorrectAnswers: ['Bees', 'Dragonflies', 'Ladybugs'],
-  },
-  {
-    id: 'ani-e-03',
-    category: 'Animals',
-    theme: 'animals',
-    difficulty: 'easy',
-    question: 'Which animal is known as the "King of the Jungle"?',
-    correctAnswer: 'Lion',
-    incorrectAnswers: ['Tiger', 'Elephant', 'Gorilla'],
-  },
-
-  // === ANIMALS — Medium ===
-  {
-    id: 'ani-m-01',
-    category: 'Animals',
-    theme: 'animals',
-    difficulty: 'medium',
-    question: 'How many hearts does an octopus have?',
-    correctAnswer: '3',
-    incorrectAnswers: ['1', '2', '4'],
-  },
-  {
-    id: 'ani-m-02',
-    category: 'Animals',
-    theme: 'animals',
-    difficulty: 'medium',
-    question: 'Which bird is known for its ability to mimic human speech?',
-    correctAnswer: 'Parrot',
-    incorrectAnswers: ['Eagle', 'Penguin', 'Sparrow'],
-  },
-
-  // === ANIMALS — Hard ===
-  {
-    id: 'ani-h-01',
-    category: 'Animals',
-    theme: 'animals',
-    difficulty: 'hard',
-    question: 'What is the only mammal capable of true flight?',
-    correctAnswer: 'Bat',
-    incorrectAnswers: ['Flying squirrel', 'Sugar glider', 'Flying fox'],
-  },
-];
+/**
+ * Clear the in-memory question cache
+ */
+export function clearQuestionCache(): void {
+  cachedQuestions = [];
+  cachedLanguage = null;
+}
 
 // ============================================================
 // Query Functions
 // ============================================================
 
 /**
- * Get questions filtered by difficulty and theme
+ * Get questions filtered by difficulty and theme.
+ * Questions MUST be loaded first via loadQuestions().
  */
 export function getQuestions(
   difficulty: TriviaDifficulty,
   theme: TriviaTheme,
   count: number,
 ): TriviaQuestion[] {
-  let pool = [...BUNDLED_QUESTIONS];
+  let pool = [...cachedQuestions];
 
   // Filter by difficulty
   pool = pool.filter(q => q.difficulty === difficulty);
@@ -505,7 +146,7 @@ export function getQuestions(
   // If we don't have enough questions in the filtered pool,
   // fill with questions from other themes at the same difficulty
   if (pool.length < count && theme !== 'mixed') {
-    const fallback = BUNDLED_QUESTIONS
+    const fallback = cachedQuestions
       .filter(q => q.difficulty === difficulty && q.theme !== theme)
       .sort(() => Math.random() - 0.5);
 
@@ -522,12 +163,27 @@ export function getQuestions(
 }
 
 /**
- * Get the total number of available questions per difficulty
+ * Get the total number of available questions per difficulty.
+ * Returns zeros if questions are not loaded.
  */
 export function getQuestionCounts(): Record<TriviaDifficulty, number> {
   return {
-    easy: BUNDLED_QUESTIONS.filter(q => q.difficulty === 'easy').length,
-    medium: BUNDLED_QUESTIONS.filter(q => q.difficulty === 'medium').length,
-    hard: BUNDLED_QUESTIONS.filter(q => q.difficulty === 'hard').length,
+    easy: cachedQuestions.filter(q => q.difficulty === 'easy').length,
+    medium: cachedQuestions.filter(q => q.difficulty === 'medium').length,
+    hard: cachedQuestions.filter(q => q.difficulty === 'hard').length,
   };
+}
+
+/**
+ * Check whether questions are loaded in memory
+ */
+export function isQuestionsLoaded(): boolean {
+  return cachedQuestions.length > 0;
+}
+
+/**
+ * Get the language of the currently loaded questions
+ */
+export function getLoadedLanguage(): string | null {
+  return cachedLanguage;
 }

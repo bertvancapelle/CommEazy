@@ -3094,6 +3094,17 @@
       "showStats": "Toon statistieken",
       "hideStats": "Verberg statistieken",
       "timeUp": "Tijd voorbij!",
+      "download": {
+        "checking": "Even kijken...",
+        "title": "Vragen downloaden",
+        "description": "Om Trivia te spelen moeten eerst de vragen worden gedownload. Dit hoeft maar één keer.",
+        "size": "Ongeveer 1,5 MB",
+        "button": "Downloaden",
+        "downloading": "Bezig met downloaden...",
+        "pleaseWait": "Even geduld alstublieft",
+        "error": "Het downloaden is mislukt. Controleer je internetverbinding en probeer het opnieuw.",
+        "complete": "Download voltooid!"
+      },
       "themes": {
         "mixed": "Alles",
         "general": "Algemene Kennis",

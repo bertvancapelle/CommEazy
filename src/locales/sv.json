@@ -2925,6 +2925,17 @@
       "showStats": "Visa statistik",
       "hideStats": "Dölj statistik",
       "timeUp": "Tiden är ute!",
+      "download": {
+        "checking": "Kontrollerar...",
+        "title": "Ladda ner frågor",
+        "description": "För att spela Trivia måste frågorna laddas ner först. Detta behöver bara göras en gång.",
+        "size": "Ungefär 1,5 MB",
+        "button": "Ladda ner",
+        "downloading": "Laddar ner...",
+        "pleaseWait": "Vänligen vänta",
+        "error": "Nedladdningen misslyckades. Kontrollera din internetanslutning och försök igen.",
+        "complete": "Nedladdning klar!"
+      },
       "themes": {
         "mixed": "Alla",
         "general": "Allmänkunskap",

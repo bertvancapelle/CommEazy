@@ -3108,6 +3108,17 @@
       "showStats": "Show statistics",
       "hideStats": "Hide statistics",
       "timeUp": "Time's up!",
+      "download": {
+        "checking": "Checking...",
+        "title": "Download Questions",
+        "description": "To play Trivia, the questions need to be downloaded first. This only needs to happen once.",
+        "size": "Approximately 1.5 MB",
+        "button": "Download",
+        "downloading": "Downloading...",
+        "pleaseWait": "Please wait",
+        "error": "Download failed. Please check your internet connection and try again.",
+        "complete": "Download complete!"
+      },
       "themes": {
         "mixed": "All",
         "general": "General Knowledge",

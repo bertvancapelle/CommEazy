@@ -14,7 +14,7 @@
  */
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
@@ -42,6 +42,8 @@ import {
 } from '@/engines/trivia/engine';
 import type { TriviaState, TriviaDifficulty, TriviaTheme } from '@/engines/trivia/types';
 import { ALL_TRIVIA_THEMES, DEFAULT_TRIVIA_SETTINGS, QUESTIONS_PER_ROUND_OPTIONS, TIMER_OPTIONS } from '@/engines/trivia/types';
+import { checkDataStatus, downloadGameData, type DownloadProgress } from '@/services/downloadService';
+import { loadQuestions, isQuestionsLoaded, getLoadedLanguage } from '@/engines/trivia/questionBank';
 
 // ============================================================
 // Constants
@@ -58,7 +60,7 @@ interface TriviaScreenProps {
   onBack: () => void;
 }
 
-type GamePhase = 'menu' | 'category' | 'playing' | 'gameover';
+type GamePhase = 'loading' | 'download' | 'downloading' | 'menu' | 'category' | 'playing' | 'gameover';
 
 // ============================================================
 // Difficulty options
@@ -85,7 +87,7 @@ function formatTime(seconds: number): string {
 // ============================================================
 
 export function TriviaScreen({ onBack }: TriviaScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const themeColors = useColors();
   const moduleColor = useModuleColor(MODULE_ID);
 
@@ -99,7 +101,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
 
   // Game state
   const [gameState, setGameState] = useState<TriviaState | null>(null);
-  const [phase, setPhase] = useState<GamePhase>('menu');
+  const [phase, setPhase] = useState<GamePhase>('loading');
   const [difficulty, setDifficulty] = useState<TriviaDifficulty>('medium');
   const [questionsPerRound, setQuestionsPerRound] = useState(DEFAULT_TRIVIA_SETTINGS.questionsPerRound);
   const [timerSeconds, setTimerSeconds] = useState(DEFAULT_TRIVIA_SETTINGS.timerSeconds);
@@ -107,6 +109,82 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
   const [questionTimer, setQuestionTimer] = useState(0);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const questionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Download state
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  // Current language code (e.g. 'nl', 'en', 'de')
+  const triviaLanguage = useMemo(() => i18n.language.substring(0, 2), [i18n.language]);
+
+  // ============================================================
+  // Initialization — Check if questions are available
+  // ============================================================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkAndLoadQuestions() {
+      // If already loaded for this language, go straight to menu
+      if (isQuestionsLoaded() && getLoadedLanguage() === triviaLanguage) {
+        setPhase('menu');
+        return;
+      }
+
+      // Check if data is downloaded locally
+      const status = await checkDataStatus('trivia', triviaLanguage);
+
+      if (cancelled) return;
+
+      if (status.isAvailable) {
+        // Data is downloaded — load into memory
+        const loaded = await loadQuestions(triviaLanguage);
+        if (cancelled) return;
+
+        if (loaded) {
+          setPhase('menu');
+        } else {
+          // File exists but couldn't be loaded — re-download
+          setPhase('download');
+        }
+      } else {
+        // No data — show download prompt
+        setPhase('download');
+      }
+    }
+
+    checkAndLoadQuestions();
+    return () => { cancelled = true; };
+  }, [triviaLanguage]);
+
+  // ============================================================
+  // Download handler
+  // ============================================================
+
+  const handleStartDownload = useCallback(async () => {
+    setPhase('downloading');
+    setDownloadProgress(0);
+    setDownloadError(null);
+
+    const result = await downloadGameData('trivia', triviaLanguage, (progress: DownloadProgress) => {
+      setDownloadProgress(progress.progress);
+    });
+
+    if (!result.success) {
+      setDownloadError(result.error || 'download_failed');
+      setPhase('download');
+      return;
+    }
+
+    // Load the downloaded questions into memory
+    const loaded = await loadQuestions(triviaLanguage);
+    if (loaded) {
+      setPhase('menu');
+    } else {
+      setDownloadError('load_failed');
+      setPhase('download');
+    }
+  }, [triviaLanguage]);
 
   // Cleanup timers
   useEffect(() => {
@@ -268,6 +346,158 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
   // Current question
   const currentQuestion = gameState ? getCurrentQuestion(gameState) : null;
   const lastAnswer = gameState?.answers[gameState.answers.length - 1];
+
+  // ============================================================
+  // Render — Loading Phase (checking if data is available)
+  // ============================================================
+
+  if (phase === 'loading') {
+    return (
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <ModuleScreenLayout
+          moduleId={MODULE_ID}
+          moduleBlock={
+            <ModuleHeader
+              moduleId={MODULE_ID}
+              icon="star"
+              title={t('navigation.trivia')}
+              showBackButton
+              onBackPress={onBack}
+              backIcon="gamepad"
+              skipSafeArea
+            />
+          }
+          controlsBlock={<></>}
+          contentBlock={
+            <View style={styles.downloadContent}>
+              <ActivityIndicator size="large" color={moduleColor} />
+              <Text style={[styles.downloadStatusText, { color: themeColors.textSecondary }]}>
+                {t('games.trivia.download.checking')}
+              </Text>
+            </View>
+          }
+        />
+      </View>
+    );
+  }
+
+  // ============================================================
+  // Render — Download Prompt Phase
+  // ============================================================
+
+  if (phase === 'download') {
+    return (
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <ModuleScreenLayout
+          moduleId={MODULE_ID}
+          moduleBlock={
+            <ModuleHeader
+              moduleId={MODULE_ID}
+              icon="star"
+              title={t('navigation.trivia')}
+              showBackButton
+              onBackPress={onBack}
+              backIcon="gamepad"
+              skipSafeArea
+            />
+          }
+          controlsBlock={<></>}
+          contentBlock={
+            <View style={styles.downloadContent}>
+              <View style={[styles.downloadCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                <Text style={styles.downloadEmoji}>📥</Text>
+                <Text style={[styles.downloadTitle, { color: themeColors.textPrimary }]}>
+                  {t('games.trivia.download.title')}
+                </Text>
+                <Text style={[styles.downloadDescription, { color: themeColors.textSecondary }]}>
+                  {t('games.trivia.download.description')}
+                </Text>
+                <Text style={[styles.downloadSize, { color: themeColors.textTertiary }]}>
+                  {t('games.trivia.download.size')}
+                </Text>
+
+                {downloadError && (
+                  <View style={styles.errorBanner}>
+                    <Icon name="warning" size={20} color="#F44336" />
+                    <Text style={styles.errorText}>
+                      {t('games.trivia.download.error')}
+                    </Text>
+                  </View>
+                )}
+
+                <HapticTouchable
+                  style={[styles.downloadButton, { backgroundColor: moduleColor }]}
+                  onPress={handleStartDownload}
+                >
+                  <Icon name="download" size={24} color="#FFFFFF" />
+                  <Text style={styles.downloadButtonText}>
+                    {t('games.trivia.download.button')}
+                  </Text>
+                </HapticTouchable>
+              </View>
+            </View>
+          }
+        />
+      </View>
+    );
+  }
+
+  // ============================================================
+  // Render — Downloading Phase (progress indicator)
+  // ============================================================
+
+  if (phase === 'downloading') {
+    const progressPercent = Math.round(downloadProgress * 100);
+
+    return (
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <ModuleScreenLayout
+          moduleId={MODULE_ID}
+          moduleBlock={
+            <ModuleHeader
+              moduleId={MODULE_ID}
+              icon="star"
+              title={t('navigation.trivia')}
+              showBackButton
+              onBackPress={onBack}
+              backIcon="gamepad"
+              skipSafeArea
+            />
+          }
+          controlsBlock={<></>}
+          contentBlock={
+            <View style={styles.downloadContent}>
+              <View style={[styles.downloadCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                <Text style={styles.downloadEmoji}>📥</Text>
+                <Text style={[styles.downloadTitle, { color: themeColors.textPrimary }]}>
+                  {t('games.trivia.download.downloading')}
+                </Text>
+
+                {/* Progress bar */}
+                <View style={styles.progressBarContainer}>
+                  <View style={[styles.progressBarTrack, { backgroundColor: themeColors.border }]}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        { backgroundColor: moduleColor, width: `${progressPercent}%` },
+                      ]}
+                    />
+                  </View>
+                  <Text style={[styles.progressBarText, { color: themeColors.textSecondary }]}>
+                    {progressPercent}%
+                  </Text>
+                </View>
+
+                <Text style={[styles.downloadStatusText, { color: themeColors.textTertiary }]}>
+                  {t('games.trivia.download.pleaseWait')}
+                </Text>
+              </View>
+            </View>
+          }
+        />
+      </View>
+    );
+  }
 
   // ============================================================
   // Render — Menu Phase
@@ -671,6 +901,95 @@ function getCategoryEmoji(theme: TriviaTheme): string {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+
+  // Download phases
+  downloadContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  downloadCard: {
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    padding: spacing.xl,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 400,
+  },
+  downloadEmoji: {
+    fontSize: 48,
+    marginBottom: spacing.md,
+  },
+  downloadTitle: {
+    ...typography.h3,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  downloadDescription: {
+    ...typography.body,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: spacing.sm,
+  },
+  downloadSize: {
+    ...typography.label,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  downloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: touchTargets.comfortable,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+    width: '100%',
+  },
+  downloadButtonText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  downloadStatusText: {
+    ...typography.body,
+    textAlign: 'center',
+    marginTop: spacing.md,
+  },
+  progressBarContainer: {
+    width: '100%',
+    marginBottom: spacing.md,
+  },
+  progressBarTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: spacing.xs,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressBarText: {
+    ...typography.label,
+    textAlign: 'center',
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    borderRadius: borderRadius.sm,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+    width: '100%',
+  },
+  errorText: {
+    ...typography.body,
+    color: '#C62828',
     flex: 1,
   },
 

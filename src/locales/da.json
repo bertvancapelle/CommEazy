@@ -2925,6 +2925,17 @@
       "showStats": "Vis statistik",
       "hideStats": "Skjul statistik",
       "timeUp": "Tiden er udløbet!",
+      "download": {
+        "checking": "Tjekker...",
+        "title": "Download spørgsmål",
+        "description": "For at spille Trivia skal spørgsmålene først downloades. Dette skal kun gøres én gang.",
+        "size": "Ca. 1,5 MB",
+        "button": "Download",
+        "downloading": "Downloader...",
+        "pleaseWait": "Vent venligst",
+        "error": "Download mislykkedes. Tjek din internetforbindelse og prøv igen.",
+        "complete": "Download fuldført!"
+      },
       "themes": {
         "mixed": "Alle",
         "general": "Almen Viden",

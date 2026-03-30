@@ -2949,6 +2949,17 @@
       "showStats": "Pokaż statystyki",
       "hideStats": "Ukryj statystyki",
       "timeUp": "Czas minął!",
+      "download": {
+        "checking": "Sprawdzanie...",
+        "title": "Pobierz pytania",
+        "description": "Aby zagrać w Trivia, pytania muszą zostać najpierw pobrane. To wystarczy zrobić tylko raz.",
+        "size": "Około 1,5 MB",
+        "button": "Pobierz",
+        "downloading": "Pobieranie...",
+        "pleaseWait": "Proszę czekać",
+        "error": "Pobieranie nie powiodło się. Sprawdź połączenie z internetem i spróbuj ponownie.",
+        "complete": "Pobieranie zakończone!"
+      },
       "themes": {
         "mixed": "Wszystko",
         "general": "Wiedza Ogólna",

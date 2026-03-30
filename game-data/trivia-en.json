@@ -1,0 +1,1087 @@
+{
+  "version": "1.0",
+  "language": "en",
+  "questionCount": 120,
+  "questions": [
+    {
+      "id": "gen-e-01",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "What is the capital of France?",
+      "correctAnswer": "Paris",
+      "incorrectAnswers": ["Lyon", "Marseille", "Nice"]
+    },
+    {
+      "id": "gen-e-02",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "How many days are in a year?",
+      "correctAnswer": "365",
+      "incorrectAnswers": ["360", "366", "364"]
+    },
+    {
+      "id": "gen-e-03",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "What colour do you get when you mix red and blue?",
+      "correctAnswer": "Purple",
+      "incorrectAnswers": ["Green", "Orange", "Brown"]
+    },
+    {
+      "id": "gen-e-04",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Which country is home to the Eiffel Tower?",
+      "correctAnswer": "France",
+      "incorrectAnswers": ["Italy", "Spain", "Germany"]
+    },
+    {
+      "id": "gen-e-05",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "What is the largest ocean on Earth?",
+      "correctAnswer": "Pacific Ocean",
+      "incorrectAnswers": ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean"]
+    },
+    {
+      "id": "gen-e-06",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "How many continents are there?",
+      "correctAnswer": "7",
+      "incorrectAnswers": ["5", "6", "8"]
+    },
+    {
+      "id": "gen-e-07",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Which currency is used in the United States?",
+      "correctAnswer": "Dollar",
+      "incorrectAnswers": ["Euro", "Pound", "Yen"]
+    },
+    {
+      "id": "gen-e-08",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "What is the capital of the United Kingdom?",
+      "correctAnswer": "London",
+      "incorrectAnswers": ["Manchester", "Edinburgh", "Birmingham"]
+    },
+    {
+      "id": "gen-m-01",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "Which river flows through London?",
+      "correctAnswer": "The Thames",
+      "incorrectAnswers": ["The Seine", "The Rhine", "The Danube"]
+    },
+    {
+      "id": "gen-m-02",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "What is the longest river in the world?",
+      "correctAnswer": "The Nile",
+      "incorrectAnswers": ["The Amazon", "The Mississippi", "The Yangtze"]
+    },
+    {
+      "id": "gen-m-03",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "What is the capital of Australia?",
+      "correctAnswer": "Canberra",
+      "incorrectAnswers": ["Sydney", "Melbourne", "Brisbane"]
+    },
+    {
+      "id": "gen-m-04",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "Which country has the most people in the world?",
+      "correctAnswer": "India",
+      "incorrectAnswers": ["China", "United States", "Indonesia"]
+    },
+    {
+      "id": "gen-m-05",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "What is the tallest mountain in the world?",
+      "correctAnswer": "Mount Everest",
+      "incorrectAnswers": ["K2", "Kangchenjunga", "Mont Blanc"]
+    },
+    {
+      "id": "gen-h-01",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "hard",
+      "question": "What is the deepest point in the ocean?",
+      "correctAnswer": "Mariana Trench",
+      "incorrectAnswers": ["Tonga Trench", "Java Trench", "Puerto Rico Trench"]
+    },
+    {
+      "id": "gen-h-02",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "hard",
+      "question": "How many time zones does Russia span?",
+      "correctAnswer": "11",
+      "incorrectAnswers": ["9", "7", "13"]
+    },
+    {
+      "id": "gen-h-03",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "hard",
+      "question": "Which country has the longest coastline in the world?",
+      "correctAnswer": "Canada",
+      "incorrectAnswers": ["Indonesia", "Norway", "Australia"]
+    },
+    {
+      "id": "gen-h-04",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "hard",
+      "question": "Which is the largest desert in the world?",
+      "correctAnswer": "The Sahara",
+      "incorrectAnswers": ["The Gobi", "The Kalahari", "The Atacama"]
+    },
+    {
+      "id": "sci-e-01",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "Which planet is closest to the Sun?",
+      "correctAnswer": "Mercury",
+      "incorrectAnswers": ["Venus", "Mars", "Earth"]
+    },
+    {
+      "id": "sci-e-02",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "What is the chemical formula for water?",
+      "correctAnswer": "H2O",
+      "incorrectAnswers": ["CO2", "O2", "NaCl"]
+    },
+    {
+      "id": "sci-e-03",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "How many planets are in our solar system?",
+      "correctAnswer": "8",
+      "incorrectAnswers": ["7", "9", "10"]
+    },
+    {
+      "id": "sci-e-04",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "At what temperature in Celsius does water boil?",
+      "correctAnswer": "100 degrees",
+      "incorrectAnswers": ["90 degrees", "110 degrees", "80 degrees"]
+    },
+    {
+      "id": "sci-e-05",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "What gas do humans breathe in to survive?",
+      "correctAnswer": "Oxygen",
+      "incorrectAnswers": ["Nitrogen", "Carbon dioxide", "Hydrogen"]
+    },
+    {
+      "id": "sci-e-06",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "Which organ pumps blood through your body?",
+      "correctAnswer": "The heart",
+      "incorrectAnswers": ["The liver", "The lungs", "The kidneys"]
+    },
+    {
+      "id": "sci-e-07",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "What is the largest planet in our solar system?",
+      "correctAnswer": "Jupiter",
+      "incorrectAnswers": ["Saturn", "Neptune", "Uranus"]
+    },
+    {
+      "id": "sci-m-01",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "Which element has the chemical symbol Fe?",
+      "correctAnswer": "Iron",
+      "incorrectAnswers": ["Fluorine", "Francium", "Fermium"]
+    },
+    {
+      "id": "sci-m-02",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "How many bones does an adult human body have?",
+      "correctAnswer": "206",
+      "incorrectAnswers": ["186", "216", "196"]
+    },
+    {
+      "id": "sci-m-03",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "What is the hardest natural material on Earth?",
+      "correctAnswer": "Diamond",
+      "incorrectAnswers": ["Ruby", "Sapphire", "Quartz"]
+    },
+    {
+      "id": "sci-m-04",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "Who discovered penicillin?",
+      "correctAnswer": "Alexander Fleming",
+      "incorrectAnswers": ["Louis Pasteur", "Robert Koch", "Joseph Lister"]
+    },
+    {
+      "id": "sci-m-05",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "What vitamin do you primarily get from sunlight?",
+      "correctAnswer": "Vitamin D",
+      "incorrectAnswers": ["Vitamin C", "Vitamin A", "Vitamin B12"]
+    },
+    {
+      "id": "sci-h-01",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "hard",
+      "question": "What is the lightest element in the periodic table?",
+      "correctAnswer": "Hydrogen",
+      "incorrectAnswers": ["Helium", "Lithium", "Beryllium"]
+    },
+    {
+      "id": "sci-h-02",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "hard",
+      "question": "How long does it take for sunlight to reach Earth?",
+      "correctAnswer": "About 8 minutes",
+      "incorrectAnswers": ["About 1 minute", "About 30 minutes", "About 1 second"]
+    },
+    {
+      "id": "sci-h-03",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "hard",
+      "question": "Which blood type is called the universal donor?",
+      "correctAnswer": "O-negative",
+      "incorrectAnswers": ["A-positive", "AB-positive", "B-negative"]
+    },
+    {
+      "id": "sci-h-04",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "hard",
+      "question": "What is the speed of light in kilometres per second?",
+      "correctAnswer": "About 300,000 km/s",
+      "incorrectAnswers": ["About 150,000 km/s", "About 500,000 km/s", "About 1,000,000 km/s"]
+    },
+    {
+      "id": "his-e-01",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "In which year did the Berlin Wall fall?",
+      "correctAnswer": "1989",
+      "incorrectAnswers": ["1987", "1991", "1985"]
+    },
+    {
+      "id": "his-e-02",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "In which year did World War II end?",
+      "correctAnswer": "1945",
+      "incorrectAnswers": ["1944", "1946", "1943"]
+    },
+    {
+      "id": "his-e-03",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "Who was the first person to walk on the Moon?",
+      "correctAnswer": "Neil Armstrong",
+      "incorrectAnswers": ["Buzz Aldrin", "Yuri Gagarin", "John Glenn"]
+    },
+    {
+      "id": "his-e-04",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "In which year did World War I begin?",
+      "correctAnswer": "1914",
+      "incorrectAnswers": ["1912", "1916", "1918"]
+    },
+    {
+      "id": "his-e-05",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "Which country gave the Statue of Liberty to the United States?",
+      "correctAnswer": "France",
+      "incorrectAnswers": ["England", "Netherlands", "Germany"]
+    },
+    {
+      "id": "his-e-06",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "Who painted the ceiling of the Sistine Chapel?",
+      "correctAnswer": "Michelangelo",
+      "incorrectAnswers": ["Leonardo da Vinci", "Raphael", "Donatello"]
+    },
+    {
+      "id": "his-e-07",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "Who was the first President of the United States?",
+      "correctAnswer": "George Washington",
+      "incorrectAnswers": ["Thomas Jefferson", "Benjamin Franklin", "John Adams"]
+    },
+    {
+      "id": "his-m-01",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "In which year did humans first land on the Moon?",
+      "correctAnswer": "1969",
+      "incorrectAnswers": ["1967", "1971", "1965"]
+    },
+    {
+      "id": "his-m-02",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "Which famous Roman building was an amphitheatre for gladiator fights?",
+      "correctAnswer": "The Colosseum",
+      "incorrectAnswers": ["The Pantheon", "The Roman Forum", "The Arch of Constantine"]
+    },
+    {
+      "id": "his-m-03",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "Which ship sank after hitting an iceberg in 1912?",
+      "correctAnswer": "The Titanic",
+      "incorrectAnswers": ["The Lusitania", "The Britannic", "The Olympic"]
+    },
+    {
+      "id": "his-m-04",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "Who was the British Prime Minister during most of World War II?",
+      "correctAnswer": "Winston Churchill",
+      "incorrectAnswers": ["Neville Chamberlain", "Clement Attlee", "Anthony Eden"]
+    },
+    {
+      "id": "his-m-05",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "Which ancient civilisation built the pyramids at Giza?",
+      "correctAnswer": "The Egyptians",
+      "incorrectAnswers": ["The Romans", "The Greeks", "The Persians"]
+    },
+    {
+      "id": "his-h-01",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "Which battle in 1815 marked the final defeat of Napoleon?",
+      "correctAnswer": "The Battle of Waterloo",
+      "incorrectAnswers": ["The Battle of Austerlitz", "The Battle of Leipzig", "The Battle of Trafalgar"]
+    },
+    {
+      "id": "his-h-02",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "In which year did the French Revolution begin?",
+      "correctAnswer": "1789",
+      "incorrectAnswers": ["1776", "1799", "1804"]
+    },
+    {
+      "id": "his-h-03",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "Who was the last Tsar of Russia?",
+      "correctAnswer": "Nicholas II",
+      "incorrectAnswers": ["Alexander III", "Peter the Great", "Ivan the Terrible"]
+    },
+    {
+      "id": "his-h-04",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "Which treaty ended World War I?",
+      "correctAnswer": "The Treaty of Versailles",
+      "incorrectAnswers": ["The Treaty of Paris", "The Treaty of Vienna", "The Treaty of Ghent"]
+    },
+    {
+      "id": "art-e-01",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Who painted the Mona Lisa?",
+      "correctAnswer": "Leonardo da Vinci",
+      "incorrectAnswers": ["Michelangelo", "Raphael", "Rembrandt"]
+    },
+    {
+      "id": "art-e-02",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Which Dutch painter is famous for his sunflower paintings?",
+      "correctAnswer": "Vincent van Gogh",
+      "incorrectAnswers": ["Rembrandt", "Piet Mondrian", "Johannes Vermeer"]
+    },
+    {
+      "id": "art-e-03",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Which musical instrument has 88 keys?",
+      "correctAnswer": "Piano",
+      "incorrectAnswers": ["Organ", "Accordion", "Harpsichord"]
+    },
+    {
+      "id": "art-e-04",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Who composed the famous Fifth Symphony with the ta-ta-ta-taaa motif?",
+      "correctAnswer": "Ludwig van Beethoven",
+      "incorrectAnswers": ["Wolfgang Amadeus Mozart", "Johann Sebastian Bach", "Franz Schubert"]
+    },
+    {
+      "id": "art-e-05",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "In which country is the Louvre museum located?",
+      "correctAnswer": "France",
+      "incorrectAnswers": ["Italy", "Spain", "England"]
+    },
+    {
+      "id": "art-e-06",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Who wrote the plays Romeo and Juliet and Hamlet?",
+      "correctAnswer": "William Shakespeare",
+      "incorrectAnswers": ["Charles Dickens", "Oscar Wilde", "Jane Austen"]
+    },
+    {
+      "id": "art-e-07",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Which painting by Rembrandt is his most famous group portrait?",
+      "correctAnswer": "The Night Watch",
+      "incorrectAnswers": ["The Anatomy Lesson", "The Jewish Bride", "The Storm on the Sea of Galilee"]
+    },
+    {
+      "id": "art-m-01",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Which Dutch painter is known for the painting Girl with a Pearl Earring?",
+      "correctAnswer": "Johannes Vermeer",
+      "incorrectAnswers": ["Rembrandt", "Frans Hals", "Jan Steen"]
+    },
+    {
+      "id": "art-m-02",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Which Austrian composer wrote the opera The Magic Flute?",
+      "correctAnswer": "Wolfgang Amadeus Mozart",
+      "incorrectAnswers": ["Joseph Haydn", "Franz Schubert", "Johann Strauss"]
+    },
+    {
+      "id": "art-m-03",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Who wrote the book The Little Prince?",
+      "correctAnswer": "Antoine de Saint-Exupery",
+      "incorrectAnswers": ["Victor Hugo", "Jules Verne", "Albert Camus"]
+    },
+    {
+      "id": "art-m-04",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Which Spanish architect designed the Sagrada Familia in Barcelona?",
+      "correctAnswer": "Antoni Gaudi",
+      "incorrectAnswers": ["Santiago Calatrava", "Rafael Moneo", "Ricardo Bofill"]
+    },
+    {
+      "id": "art-h-01",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "hard",
+      "question": "Which Russian composer wrote the ballet Swan Lake?",
+      "correctAnswer": "Pyotr Ilyich Tchaikovsky",
+      "incorrectAnswers": ["Sergei Rachmaninoff", "Igor Stravinsky", "Dmitri Shostakovich"]
+    },
+    {
+      "id": "art-h-02",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "hard",
+      "question": "In which city is the painting The Starry Night by Van Gogh on display?",
+      "correctAnswer": "New York",
+      "incorrectAnswers": ["Amsterdam", "Paris", "London"]
+    },
+    {
+      "id": "art-h-03",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "hard",
+      "question": "Piet Mondrian is famous for his style with coloured rectangles. What was this art movement called?",
+      "correctAnswer": "De Stijl",
+      "incorrectAnswers": ["Cubism", "Bauhaus", "Suprematism"]
+    },
+    {
+      "id": "ent-e-01",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "In which classic film does Dorothy say 'Toto, I've a feeling we're not in Kansas anymore'?",
+      "correctAnswer": "The Wizard of Oz",
+      "incorrectAnswers": ["Gone with the Wind", "Casablanca", "Mary Poppins"]
+    },
+    {
+      "id": "ent-e-02",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "What is the name of Walt Disney's famous mouse?",
+      "correctAnswer": "Mickey Mouse",
+      "incorrectAnswers": ["Donald Duck", "Goofy", "Pluto"]
+    },
+    {
+      "id": "ent-e-03",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "Which British band sang Yesterday and Let It Be?",
+      "correctAnswer": "The Beatles",
+      "incorrectAnswers": ["The Rolling Stones", "Queen", "The Who"]
+    },
+    {
+      "id": "ent-e-04",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "In which classic film does Humphrey Bogart run a cafe in Morocco?",
+      "correctAnswer": "Casablanca",
+      "incorrectAnswers": ["The Maltese Falcon", "The African Queen", "Key Largo"]
+    },
+    {
+      "id": "ent-e-05",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "Which Belgian comic character travels the world with his dog Snowy?",
+      "correctAnswer": "Tintin",
+      "incorrectAnswers": ["Asterix", "Lucky Luke", "Spirou"]
+    },
+    {
+      "id": "ent-e-06",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "Who sang the famous song My Way?",
+      "correctAnswer": "Frank Sinatra",
+      "incorrectAnswers": ["Elvis Presley", "Dean Martin", "Tony Bennett"]
+    },
+    {
+      "id": "ent-e-07",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "Which rock and roll singer was known as The King?",
+      "correctAnswer": "Elvis Presley",
+      "incorrectAnswers": ["Chuck Berry", "Little Richard", "Buddy Holly"]
+    },
+    {
+      "id": "ent-m-01",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Which singer performed I Will Always Love You in the film The Bodyguard?",
+      "correctAnswer": "Whitney Houston",
+      "incorrectAnswers": ["Mariah Carey", "Celine Dion", "Diana Ross"]
+    },
+    {
+      "id": "ent-m-02",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Which Swedish pop group won the Eurovision Song Contest in 1974 with Waterloo?",
+      "correctAnswer": "ABBA",
+      "incorrectAnswers": ["Roxette", "Ace of Base", "Army of Lovers"]
+    },
+    {
+      "id": "ent-m-03",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Who wrote the Harry Potter books?",
+      "correctAnswer": "J.K. Rowling",
+      "incorrectAnswers": ["Roald Dahl", "Stephen King", "Agatha Christie"]
+    },
+    {
+      "id": "ent-m-04",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Which famous film director made Schindler's List and Jurassic Park?",
+      "correctAnswer": "Steven Spielberg",
+      "incorrectAnswers": ["Martin Scorsese", "Francis Ford Coppola", "Ridley Scott"]
+    },
+    {
+      "id": "ent-m-05",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Which actress starred in Breakfast at Tiffany's and My Fair Lady?",
+      "correctAnswer": "Audrey Hepburn",
+      "incorrectAnswers": ["Marilyn Monroe", "Grace Kelly", "Elizabeth Taylor"]
+    },
+    {
+      "id": "ent-h-01",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "hard",
+      "question": "Which country won the very first Eurovision Song Contest in 1956?",
+      "correctAnswer": "Switzerland",
+      "incorrectAnswers": ["Netherlands", "France", "Italy"]
+    },
+    {
+      "id": "ent-h-02",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "hard",
+      "question": "Who sang the original French version of My Way before Frank Sinatra made it famous?",
+      "correctAnswer": "Claude Francois",
+      "incorrectAnswers": ["Charles Aznavour", "Jacques Brel", "Edith Piaf"]
+    },
+    {
+      "id": "ent-h-03",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "hard",
+      "question": "Which Alfred Hitchcock film features a terrifying shower scene?",
+      "correctAnswer": "Psycho",
+      "incorrectAnswers": ["Vertigo", "The Birds", "Rear Window"]
+    },
+    {
+      "id": "ent-h-04",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "hard",
+      "question": "In which year was the first Academy Awards ceremony held?",
+      "correctAnswer": "1929",
+      "incorrectAnswers": ["1925", "1932", "1935"]
+    },
+    {
+      "id": "spo-e-01",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "How many players are on a football (soccer) team on the field?",
+      "correctAnswer": "11",
+      "incorrectAnswers": ["10", "12", "9"]
+    },
+    {
+      "id": "spo-e-02",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "How often are the Summer Olympic Games held?",
+      "correctAnswer": "Every 4 years",
+      "incorrectAnswers": ["Every 2 years", "Every 3 years", "Every 5 years"]
+    },
+    {
+      "id": "spo-e-03",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "Which sport is played at Wimbledon?",
+      "correctAnswer": "Tennis",
+      "incorrectAnswers": ["Golf", "Cricket", "Polo"]
+    },
+    {
+      "id": "spo-e-04",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "In which sport does the leader wear a yellow jersey?",
+      "correctAnswer": "Cycling",
+      "incorrectAnswers": ["Football", "Running", "Sailing"]
+    },
+    {
+      "id": "spo-e-05",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "How many rings are on the Olympic flag?",
+      "correctAnswer": "5",
+      "incorrectAnswers": ["4", "6", "7"]
+    },
+    {
+      "id": "spo-e-06",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "What is the most popular sport in the world?",
+      "correctAnswer": "Football (soccer)",
+      "incorrectAnswers": ["Cricket", "Basketball", "Tennis"]
+    },
+    {
+      "id": "spo-e-07",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "In which sport do you use a bat and a ball, with the aim of hitting home runs?",
+      "correctAnswer": "Baseball",
+      "incorrectAnswers": ["Cricket", "Golf", "Tennis"]
+    },
+    {
+      "id": "spo-m-01",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "In which city were the first modern Olympic Games held in 1896?",
+      "correctAnswer": "Athens",
+      "incorrectAnswers": ["Paris", "London", "Rome"]
+    },
+    {
+      "id": "spo-m-02",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "Which country has won the most FIFA World Cups?",
+      "correctAnswer": "Brazil",
+      "incorrectAnswers": ["Germany", "Italy", "Argentina"]
+    },
+    {
+      "id": "spo-m-03",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "Who holds the record for the most Olympic gold medals?",
+      "correctAnswer": "Michael Phelps",
+      "incorrectAnswers": ["Usain Bolt", "Carl Lewis", "Mark Spitz"]
+    },
+    {
+      "id": "spo-m-04",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "Which sport is often called the 'sport of kings'?",
+      "correctAnswer": "Horse racing",
+      "incorrectAnswers": ["Polo", "Golf", "Fencing"]
+    },
+    {
+      "id": "spo-m-05",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "In which year did England win the FIFA World Cup?",
+      "correctAnswer": "1966",
+      "incorrectAnswers": ["1962", "1970", "1958"]
+    },
+    {
+      "id": "spo-h-01",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "hard",
+      "question": "Which boxer was known as The Greatest and had the catchphrase 'Float like a butterfly, sting like a bee'?",
+      "correctAnswer": "Muhammad Ali",
+      "incorrectAnswers": ["Joe Frazier", "George Foreman", "Mike Tyson"]
+    },
+    {
+      "id": "spo-h-02",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "hard",
+      "question": "In which year were the Olympic Games held in Berlin under Nazi rule?",
+      "correctAnswer": "1936",
+      "incorrectAnswers": ["1932", "1940", "1928"]
+    },
+    {
+      "id": "spo-h-03",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "hard",
+      "question": "Who won the first ever Formula One World Championship in 1950?",
+      "correctAnswer": "Giuseppe Farina",
+      "incorrectAnswers": ["Juan Manuel Fangio", "Alberto Ascari", "Stirling Moss"]
+    },
+    {
+      "id": "spo-h-04",
+      "category": "Sports",
+      "theme": "sports",
+      "difficulty": "hard",
+      "question": "Which cyclist won the Tour de France five consecutive times from 1991 to 1995?",
+      "correctAnswer": "Miguel Indurain",
+      "incorrectAnswers": ["Eddy Merckx", "Bernard Hinault", "Laurent Fignon"]
+    },
+    {
+      "id": "ani-e-01",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Which animal is known as the king of the jungle?",
+      "correctAnswer": "The lion",
+      "incorrectAnswers": ["The tiger", "The elephant", "The gorilla"]
+    },
+    {
+      "id": "ani-e-02",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "What type of animal is a dolphin?",
+      "correctAnswer": "A mammal",
+      "incorrectAnswers": ["A fish", "An amphibian", "A reptile"]
+    },
+    {
+      "id": "ani-e-03",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "How many legs does a spider have?",
+      "correctAnswer": "8",
+      "incorrectAnswers": ["6", "10", "12"]
+    },
+    {
+      "id": "ani-e-04",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Which bird can turn its head almost all the way around?",
+      "correctAnswer": "The owl",
+      "incorrectAnswers": ["The eagle", "The parrot", "The swan"]
+    },
+    {
+      "id": "ani-e-05",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "What is the largest animal on land?",
+      "correctAnswer": "The African elephant",
+      "incorrectAnswers": ["The rhinoceros", "The hippopotamus", "The giraffe"]
+    },
+    {
+      "id": "ani-e-06",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "What do pandas like to eat the most?",
+      "correctAnswer": "Bamboo",
+      "incorrectAnswers": ["Eucalyptus", "Berries", "Nuts"]
+    },
+    {
+      "id": "ani-e-07",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Which animal produces honey?",
+      "correctAnswer": "The bee",
+      "incorrectAnswers": ["The wasp", "The butterfly", "The ant"]
+    },
+    {
+      "id": "ani-m-01",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "How long is an elephant typically pregnant?",
+      "correctAnswer": "About 22 months",
+      "incorrectAnswers": ["About 12 months", "About 9 months", "About 18 months"]
+    },
+    {
+      "id": "ani-m-02",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Which bird lays the largest egg?",
+      "correctAnswer": "The ostrich",
+      "incorrectAnswers": ["The emu", "The condor", "The albatross"]
+    },
+    {
+      "id": "ani-m-03",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Which sea creature has three hearts?",
+      "correctAnswer": "The octopus",
+      "incorrectAnswers": ["The jellyfish", "The squid", "The starfish"]
+    },
+    {
+      "id": "ani-m-04",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Which animal is the national symbol of Australia alongside the kangaroo?",
+      "correctAnswer": "The emu",
+      "incorrectAnswers": ["The koala", "The platypus", "The wombat"]
+    },
+    {
+      "id": "ani-m-05",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Which butterfly is famous for its annual migration of thousands of kilometres?",
+      "correctAnswer": "The monarch butterfly",
+      "incorrectAnswers": ["The swallowtail", "The painted lady", "The peacock butterfly"]
+    },
+    {
+      "id": "ani-h-01",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "hard",
+      "question": "What is the fastest animal on land?",
+      "correctAnswer": "The cheetah",
+      "incorrectAnswers": ["The springbok", "The hare", "The ostrich"]
+    },
+    {
+      "id": "ani-h-02",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "hard",
+      "question": "Which animal has the longest lifespan on Earth, sometimes more than 500 years?",
+      "correctAnswer": "The Greenland shark",
+      "incorrectAnswers": ["The giant tortoise", "The bowhead whale", "The Japanese spider crab"]
+    },
+    {
+      "id": "ani-h-03",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "hard",
+      "question": "Which animal can survive without water the longest?",
+      "correctAnswer": "The kangaroo rat",
+      "incorrectAnswers": ["The camel", "The tortoise", "The giraffe"]
+    },
+    {
+      "id": "ani-h-04",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "hard",
+      "question": "What is the only mammal that can truly fly?",
+      "correctAnswer": "The bat",
+      "incorrectAnswers": ["The flying squirrel", "The sugar glider", "The colugo"]
+    },
+    {
+      "id": "his-m-06",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "Which queen reigned for 70 years, the longest in British history?",
+      "correctAnswer": "Queen Elizabeth II",
+      "incorrectAnswers": ["Queen Victoria", "Queen Elizabeth I", "Queen Anne"]
+    },
+    {
+      "id": "ent-m-06",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Which television programme started in 1999 by locking people in a house?",
+      "correctAnswer": "Big Brother",
+      "incorrectAnswers": ["Survivor", "The Real World", "The Mole"]
+    },
+    {
+      "id": "art-m-05",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Who wrote the novel A Tale of Two Cities?",
+      "correctAnswer": "Charles Dickens",
+      "incorrectAnswers": ["Jane Austen", "Thomas Hardy", "George Eliot"]
+    },
+    {
+      "id": "sci-m-06",
+      "category": "Science",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "What is the name of the layer of the atmosphere where we live?",
+      "correctAnswer": "Troposphere",
+      "incorrectAnswers": ["Stratosphere", "Mesosphere", "Thermosphere"]
+    },
+    {
+      "id": "his-h-05",
+      "category": "History",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "In which year was the Magna Carta signed?",
+      "correctAnswer": "1215",
+      "incorrectAnswers": ["1066", "1314", "1485"]
+    },
+    {
+      "id": "art-h-04",
+      "category": "Arts & Culture",
+      "theme": "arts",
+      "difficulty": "hard",
+      "question": "Who wrote the novel War and Peace?",
+      "correctAnswer": "Leo Tolstoy",
+      "incorrectAnswers": ["Fyodor Dostoevsky", "Anton Chekhov", "Ivan Turgenev"]
+    },
+    {
+      "id": "ani-m-06",
+      "category": "Animals",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Which animal sleeps the most per day, about 20 hours?",
+      "correctAnswer": "The koala",
+      "incorrectAnswers": ["The sloth", "The cat", "The bat"]
+    },
+    {
+      "id": "gen-m-06",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "Which European city is known as the City of Canals?",
+      "correctAnswer": "Venice",
+      "incorrectAnswers": ["Amsterdam", "Bruges", "Stockholm"]
+    },
+    {
+      "id": "gen-e-09",
+      "category": "General Knowledge",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "What colour do you get when you mix red and yellow?",
+      "correctAnswer": "Orange",
+      "incorrectAnswers": ["Purple", "Green", "Brown"]
+    }
+  ]
+}

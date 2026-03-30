@@ -1,0 +1,1087 @@
+{
+  "version": "1.0",
+  "language": "nl",
+  "questionCount": 120,
+  "questions": [
+    {
+      "id": "gen-e-01",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Wat is de hoofdstad van Nederland?",
+      "correctAnswer": "Amsterdam",
+      "incorrectAnswers": ["Den Haag", "Rotterdam", "Utrecht"]
+    },
+    {
+      "id": "gen-e-02",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Hoeveel provincies heeft Nederland?",
+      "correctAnswer": "12",
+      "incorrectAnswers": ["10", "11", "14"]
+    },
+    {
+      "id": "gen-e-03",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Welke kleur heeft een gewone banaan als deze rijp is?",
+      "correctAnswer": "Geel",
+      "incorrectAnswers": ["Groen", "Rood", "Oranje"]
+    },
+    {
+      "id": "gen-e-04",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "In welk land staat de Eiffeltoren?",
+      "correctAnswer": "Frankrijk",
+      "incorrectAnswers": ["Belgie", "Italie", "Spanje"]
+    },
+    {
+      "id": "gen-e-05",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Hoeveel dagen heeft een week?",
+      "correctAnswer": "7",
+      "incorrectAnswers": ["5", "6", "8"]
+    },
+    {
+      "id": "gen-e-06",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Welke munt wordt gebruikt in de meeste Europese landen?",
+      "correctAnswer": "Euro",
+      "incorrectAnswers": ["Dollar", "Pond", "Frank"]
+    },
+    {
+      "id": "gen-e-07",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Wat is de grootste oceaan ter wereld?",
+      "correctAnswer": "Stille Oceaan",
+      "incorrectAnswers": ["Atlantische Oceaan", "Indische Oceaan", "Noordelijke IJszee"]
+    },
+    {
+      "id": "gen-e-08",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Hoeveel continenten zijn er op aarde?",
+      "correctAnswer": "7",
+      "incorrectAnswers": ["5", "6", "8"]
+    },
+    {
+      "id": "gen-m-01",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "Welke rivier stroomt door Parijs?",
+      "correctAnswer": "De Seine",
+      "incorrectAnswers": ["De Rijn", "De Loire", "De Rhone"]
+    },
+    {
+      "id": "gen-m-02",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "Wat is de langste rivier van Europa?",
+      "correctAnswer": "De Wolga",
+      "incorrectAnswers": ["De Donau", "De Rijn", "De Elbe"]
+    },
+    {
+      "id": "gen-m-03",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "In welk land ligt Timboektoe?",
+      "correctAnswer": "Mali",
+      "incorrectAnswers": ["Nigeria", "Senegal", "Ghana"]
+    },
+    {
+      "id": "gen-m-04",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "Wat is de hoofdstad van Australie?",
+      "correctAnswer": "Canberra",
+      "incorrectAnswers": ["Sydney", "Melbourne", "Brisbane"]
+    },
+    {
+      "id": "gen-m-05",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "Welk land heeft de meeste inwoners ter wereld?",
+      "correctAnswer": "India",
+      "incorrectAnswers": ["China", "Verenigde Staten", "Indonesie"]
+    },
+    {
+      "id": "gen-h-01",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "hard",
+      "question": "Wat is de diepste plek in de oceaan?",
+      "correctAnswer": "Marianentrog",
+      "incorrectAnswers": ["Tongagroeve", "Javageul", "Puerto Ricogeul"]
+    },
+    {
+      "id": "gen-h-02",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "hard",
+      "question": "Hoeveel tijdzones heeft Rusland?",
+      "correctAnswer": "11",
+      "incorrectAnswers": ["9", "7", "13"]
+    },
+    {
+      "id": "gen-h-03",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "hard",
+      "question": "Welk land heeft de langste kustlijn ter wereld?",
+      "correctAnswer": "Canada",
+      "incorrectAnswers": ["Indonesie", "Noorwegen", "Australie"]
+    },
+    {
+      "id": "sci-e-01",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "Welke planeet staat het dichtst bij de zon?",
+      "correctAnswer": "Mercurius",
+      "incorrectAnswers": ["Venus", "Mars", "Aarde"]
+    },
+    {
+      "id": "sci-e-02",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "Wat is het chemische symbool voor water?",
+      "correctAnswer": "H2O",
+      "incorrectAnswers": ["CO2", "O2", "NaCl"]
+    },
+    {
+      "id": "sci-e-03",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "Hoeveel planeten heeft ons zonnestelsel?",
+      "correctAnswer": "8",
+      "incorrectAnswers": ["7", "9", "10"]
+    },
+    {
+      "id": "sci-e-04",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "Bij welke temperatuur in graden Celsius kookt water?",
+      "correctAnswer": "100 graden",
+      "incorrectAnswers": ["90 graden", "110 graden", "80 graden"]
+    },
+    {
+      "id": "sci-e-05",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "Welk gas ademen mensen in?",
+      "correctAnswer": "Zuurstof",
+      "incorrectAnswers": ["Stikstof", "Koolstofdioxide", "Waterstof"]
+    },
+    {
+      "id": "sci-e-06",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "Welk orgaan pompt bloed door het lichaam?",
+      "correctAnswer": "Het hart",
+      "incorrectAnswers": ["De lever", "De longen", "De nieren"]
+    },
+    {
+      "id": "sci-e-07",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "easy",
+      "question": "Wat is de grootste planeet in ons zonnestelsel?",
+      "correctAnswer": "Jupiter",
+      "incorrectAnswers": ["Saturnus", "Neptunus", "Uranus"]
+    },
+    {
+      "id": "sci-m-01",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "Welk element heeft het symbool Fe?",
+      "correctAnswer": "IJzer",
+      "incorrectAnswers": ["Fluor", "Fosfor", "Francium"]
+    },
+    {
+      "id": "sci-m-02",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "Hoeveel botten heeft een volwassen menselijk lichaam?",
+      "correctAnswer": "206",
+      "incorrectAnswers": ["186", "216", "196"]
+    },
+    {
+      "id": "sci-m-03",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "Wat is het hardste natuurlijke materiaal op aarde?",
+      "correctAnswer": "Diamant",
+      "incorrectAnswers": ["Robijn", "Saffier", "Kwarts"]
+    },
+    {
+      "id": "sci-m-04",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "Wie ontdekte penicilline?",
+      "correctAnswer": "Alexander Fleming",
+      "incorrectAnswers": ["Louis Pasteur", "Robert Koch", "Joseph Lister"]
+    },
+    {
+      "id": "sci-m-05",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "Hoe heet de laag van de atmosfeer waar we in leven?",
+      "correctAnswer": "Troposfeer",
+      "incorrectAnswers": ["Stratosfeer", "Mesosfeer", "Thermosfeer"]
+    },
+    {
+      "id": "sci-h-01",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "hard",
+      "question": "Wat is het lichtste element in het periodiek systeem?",
+      "correctAnswer": "Waterstof",
+      "incorrectAnswers": ["Helium", "Lithium", "Beryllium"]
+    },
+    {
+      "id": "sci-h-02",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "hard",
+      "question": "Hoe lang doet licht er over om van de zon naar de aarde te reizen?",
+      "correctAnswer": "Ongeveer 8 minuten",
+      "incorrectAnswers": ["Ongeveer 1 minuut", "Ongeveer 30 minuten", "Ongeveer 1 seconde"]
+    },
+    {
+      "id": "sci-h-03",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "hard",
+      "question": "Welk bloedtype wordt de universele donor genoemd?",
+      "correctAnswer": "O-negatief",
+      "incorrectAnswers": ["A-positief", "AB-positief", "B-negatief"]
+    },
+    {
+      "id": "sci-h-04",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "hard",
+      "question": "Wat is de snelheid van het licht in kilometers per seconde?",
+      "correctAnswer": "Ongeveer 300.000 km/s",
+      "incorrectAnswers": ["Ongeveer 150.000 km/s", "Ongeveer 500.000 km/s", "Ongeveer 1.000.000 km/s"]
+    },
+    {
+      "id": "his-e-01",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "In welk jaar viel de Berlijnse Muur?",
+      "correctAnswer": "1989",
+      "incorrectAnswers": ["1987", "1991", "1985"]
+    },
+    {
+      "id": "his-e-02",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "In welk jaar eindigde de Tweede Wereldoorlog?",
+      "correctAnswer": "1945",
+      "incorrectAnswers": ["1944", "1946", "1943"]
+    },
+    {
+      "id": "his-e-03",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "Wie was de eerste mens op de maan?",
+      "correctAnswer": "Neil Armstrong",
+      "incorrectAnswers": ["Buzz Aldrin", "Yuri Gagarin", "John Glenn"]
+    },
+    {
+      "id": "his-e-04",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "In welk jaar begon de Eerste Wereldoorlog?",
+      "correctAnswer": "1914",
+      "incorrectAnswers": ["1912", "1916", "1918"]
+    },
+    {
+      "id": "his-e-05",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "Wie schreef het dagboek dat wereldberoemd werd uit de Tweede Wereldoorlog?",
+      "correctAnswer": "Anne Frank",
+      "incorrectAnswers": ["Corrie ten Boom", "Etty Hillesum", "Edith Stein"]
+    },
+    {
+      "id": "his-e-06",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "Welk land gaf het Vrijheidsbeeld aan de Verenigde Staten?",
+      "correctAnswer": "Frankrijk",
+      "incorrectAnswers": ["Engeland", "Nederland", "Duitsland"]
+    },
+    {
+      "id": "his-e-07",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "easy",
+      "question": "Wie schilderde het plafond van de Sixtijnse Kapel?",
+      "correctAnswer": "Michelangelo",
+      "incorrectAnswers": ["Leonardo da Vinci", "Rafael", "Donatello"]
+    },
+    {
+      "id": "his-m-01",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "In welk jaar werd de Europese Unie opgericht met het Verdrag van Maastricht?",
+      "correctAnswer": "1992",
+      "incorrectAnswers": ["1990", "1995", "1988"]
+    },
+    {
+      "id": "his-m-02",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "Welke Nederlandse stad werd in 1953 zwaar getroffen door de Watersnoodramp?",
+      "correctAnswer": "Zierikzee",
+      "incorrectAnswers": ["Vlissingen", "Dordrecht", "Breda"]
+    },
+    {
+      "id": "his-m-03",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "Wie was de eerste president van de Verenigde Staten?",
+      "correctAnswer": "George Washington",
+      "incorrectAnswers": ["Thomas Jefferson", "Benjamin Franklin", "John Adams"]
+    },
+    {
+      "id": "his-m-04",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "In welk jaar landde de mens voor het eerst op de maan?",
+      "correctAnswer": "1969",
+      "incorrectAnswers": ["1967", "1971", "1965"]
+    },
+    {
+      "id": "his-m-05",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "Welk Romeins bouwwerk is een beroemd amfitheater in Rome?",
+      "correctAnswer": "Het Colosseum",
+      "incorrectAnswers": ["Het Pantheon", "Het Forum Romanum", "De Boog van Constantijn"]
+    },
+    {
+      "id": "his-h-01",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "In welk jaar werd de Vrede van Munster getekend?",
+      "correctAnswer": "1648",
+      "incorrectAnswers": ["1618", "1672", "1635"]
+    },
+    {
+      "id": "his-h-02",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "Wie was stadhouder tijdens het Rampjaar 1672?",
+      "correctAnswer": "Willem III",
+      "incorrectAnswers": ["Maurits van Oranje", "Frederik Hendrik", "Willem II"]
+    },
+    {
+      "id": "his-h-03",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "Welke slag in 1815 betekende het einde van Napoleon?",
+      "correctAnswer": "De Slag bij Waterloo",
+      "incorrectAnswers": ["De Slag bij Austerlitz", "De Slag bij Leipzig", "De Slag bij Trafalgar"]
+    },
+    {
+      "id": "his-h-04",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "In welk jaar werd het eerste Nederlandse parlement gevormd?",
+      "correctAnswer": "1815",
+      "incorrectAnswers": ["1848", "1795", "1830"]
+    },
+    {
+      "id": "art-e-01",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Wie schilderde De Nachtwacht?",
+      "correctAnswer": "Rembrandt van Rijn",
+      "incorrectAnswers": ["Johannes Vermeer", "Vincent van Gogh", "Frans Hals"]
+    },
+    {
+      "id": "art-e-02",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Welke Nederlandse schilder is beroemd om zijn zonnebloemen?",
+      "correctAnswer": "Vincent van Gogh",
+      "incorrectAnswers": ["Rembrandt van Rijn", "Piet Mondriaan", "Jan Steen"]
+    },
+    {
+      "id": "art-e-03",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "In welk museum hangt De Nachtwacht?",
+      "correctAnswer": "Het Rijksmuseum",
+      "incorrectAnswers": ["Het Van Gogh Museum", "Het Mauritshuis", "Het Stedelijk Museum"]
+    },
+    {
+      "id": "art-e-04",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Wie componeerde de Vijfde Symfonie met het beroemde ta-ta-ta-taaa motief?",
+      "correctAnswer": "Ludwig van Beethoven",
+      "incorrectAnswers": ["Wolfgang Amadeus Mozart", "Johann Sebastian Bach", "Franz Schubert"]
+    },
+    {
+      "id": "art-e-05",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Wie schilderde de Mona Lisa?",
+      "correctAnswer": "Leonardo da Vinci",
+      "incorrectAnswers": ["Michelangelo", "Rafael", "Rembrandt"]
+    },
+    {
+      "id": "art-e-06",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "Welk instrument heeft 88 toetsen?",
+      "correctAnswer": "Piano",
+      "incorrectAnswers": ["Orgel", "Accordeon", "Clavecimbel"]
+    },
+    {
+      "id": "art-e-07",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "easy",
+      "question": "In welk land staat het Louvre?",
+      "correctAnswer": "Frankrijk",
+      "incorrectAnswers": ["Italie", "Spanje", "Engeland"]
+    },
+    {
+      "id": "art-m-01",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Welke Nederlandse schilder is bekend om het schilderij Het Meisje met de Parel?",
+      "correctAnswer": "Johannes Vermeer",
+      "incorrectAnswers": ["Rembrandt van Rijn", "Frans Hals", "Jan Steen"]
+    },
+    {
+      "id": "art-m-02",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Wie schreef het boek Max Havelaar?",
+      "correctAnswer": "Multatuli",
+      "incorrectAnswers": ["Louis Couperus", "Gerard Reve", "Harry Mulisch"]
+    },
+    {
+      "id": "art-m-03",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Welke Oostenrijkse componist schreef de opera De Toverfluit?",
+      "correctAnswer": "Wolfgang Amadeus Mozart",
+      "incorrectAnswers": ["Joseph Haydn", "Franz Schubert", "Johann Strauss"]
+    },
+    {
+      "id": "art-m-04",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Wie schreef het boek De Kleine Prins?",
+      "correctAnswer": "Antoine de Saint-Exupery",
+      "incorrectAnswers": ["Victor Hugo", "Jules Verne", "Albert Camus"]
+    },
+    {
+      "id": "art-h-01",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "hard",
+      "question": "Piet Mondriaan is beroemd om zijn stijl met gekleurde vlakken. Hoe heet deze kunststroming?",
+      "correctAnswer": "De Stijl",
+      "incorrectAnswers": ["Kubisme", "Bauhaus", "Suprematisme"]
+    },
+    {
+      "id": "art-h-02",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "hard",
+      "question": "Welke Russische componist schreef het ballet Het Zwanenmeer?",
+      "correctAnswer": "Pjotr Iljitsj Tsjaikovski",
+      "incorrectAnswers": ["Sergej Rachmaninov", "Igor Stravinsky", "Dmitri Sjostakovitsj"]
+    },
+    {
+      "id": "art-h-03",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "hard",
+      "question": "Welke beroemde Spaanse architect ontwierp de Sagrada Familia in Barcelona?",
+      "correctAnswer": "Antoni Gaudi",
+      "incorrectAnswers": ["Santiago Calatrava", "Rafael Moneo", "Ricardo Bofill"]
+    },
+    {
+      "id": "ent-e-01",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "Hoe heet de beroemde Nederlandse televisiekok die bekend werd met Koken met Van Boven?",
+      "correctAnswer": "Yvette van Boven",
+      "incorrectAnswers": ["Rudolph van Veen", "Robert Kranenborg", "Herman den Blijker"]
+    },
+    {
+      "id": "ent-e-02",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "In welke film zegt de hoofdpersoon: 'Toto, ik heb het gevoel dat we niet meer in Kansas zijn'?",
+      "correctAnswer": "The Wizard of Oz",
+      "incorrectAnswers": ["Gone with the Wind", "Casablanca", "Mary Poppins"]
+    },
+    {
+      "id": "ent-e-03",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "Welk Belgisch stripfiguurtje reist de wereld rond met zijn hondje Bobbie?",
+      "correctAnswer": "Kuifje",
+      "incorrectAnswers": ["Suske", "Jommeke", "Nero"]
+    },
+    {
+      "id": "ent-e-04",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "Hoe heet de beroemde muis van Walt Disney?",
+      "correctAnswer": "Mickey Mouse",
+      "incorrectAnswers": ["Donald Duck", "Goofy", "Pluto"]
+    },
+    {
+      "id": "ent-e-05",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "Welke Nederlandse zanger is bekend van het lied Ik heb je lief?",
+      "correctAnswer": "Andre Hazes",
+      "incorrectAnswers": ["Marco Borsato", "Gerard Joling", "Rene Froger"]
+    },
+    {
+      "id": "ent-e-06",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "Welke Britse band zong Yesterday en Let It Be?",
+      "correctAnswer": "The Beatles",
+      "incorrectAnswers": ["The Rolling Stones", "Queen", "The Who"]
+    },
+    {
+      "id": "ent-e-07",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "easy",
+      "question": "In welke klassieke film speelt Humphrey Bogart een barkeeper in Marokko?",
+      "correctAnswer": "Casablanca",
+      "incorrectAnswers": ["The Maltese Falcon", "The African Queen", "Key Largo"]
+    },
+    {
+      "id": "ent-m-01",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Welke zangeres zong de klassieker I Will Always Love You in de film The Bodyguard?",
+      "correctAnswer": "Whitney Houston",
+      "incorrectAnswers": ["Mariah Carey", "Celine Dion", "Diana Ross"]
+    },
+    {
+      "id": "ent-m-02",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Wie presenteerde jarenlang het Sinterklaasjournaal op de Nederlandse televisie?",
+      "correctAnswer": "Dieuwertje Blok",
+      "incorrectAnswers": ["Yvon Jaspers", "Natasja Froger", "Irene Moors"]
+    },
+    {
+      "id": "ent-m-03",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Welke Zweedse popgroep won het Eurovisie Songfestival in 1974 met Waterloo?",
+      "correctAnswer": "ABBA",
+      "incorrectAnswers": ["Roxette", "Ace of Base", "Army of Lovers"]
+    },
+    {
+      "id": "ent-m-04",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Wie schreef de boeken over Harry Potter?",
+      "correctAnswer": "J.K. Rowling",
+      "incorrectAnswers": ["Roald Dahl", "Stephen King", "Agatha Christie"]
+    },
+    {
+      "id": "ent-m-05",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Welke beroemde filmregisseur maakte Schindler's List en Jurassic Park?",
+      "correctAnswer": "Steven Spielberg",
+      "incorrectAnswers": ["Martin Scorsese", "Francis Ford Coppola", "Ridley Scott"]
+    },
+    {
+      "id": "ent-h-01",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "hard",
+      "question": "Welk land won het allereerste Eurovisie Songfestival in 1956?",
+      "correctAnswer": "Zwitserland",
+      "incorrectAnswers": ["Nederland", "Frankrijk", "Italie"]
+    },
+    {
+      "id": "ent-h-02",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "hard",
+      "question": "Wie zong de originele versie van My Way, voordat Frank Sinatra er een hit van maakte?",
+      "correctAnswer": "Claude Francois",
+      "incorrectAnswers": ["Charles Aznavour", "Jacques Brel", "Edith Piaf"]
+    },
+    {
+      "id": "ent-h-03",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "hard",
+      "question": "In welk jaar verscheen de eerste aflevering van de Nederlandse televisieserie Dagboek van een Herdershond?",
+      "correctAnswer": "1978",
+      "incorrectAnswers": ["1975", "1981", "1983"]
+    },
+    {
+      "id": "spo-e-01",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "Hoeveel spelers staan er in een voetbalteam op het veld?",
+      "correctAnswer": "11",
+      "incorrectAnswers": ["10", "12", "9"]
+    },
+    {
+      "id": "spo-e-02",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "Om de hoeveel jaar worden de Olympische Zomerspelen gehouden?",
+      "correctAnswer": "4 jaar",
+      "incorrectAnswers": ["2 jaar", "3 jaar", "5 jaar"]
+    },
+    {
+      "id": "spo-e-03",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "Welke sport wordt gespeeld op Wimbledon?",
+      "correctAnswer": "Tennis",
+      "incorrectAnswers": ["Golf", "Cricket", "Polo"]
+    },
+    {
+      "id": "spo-e-04",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "In welke sport wordt een gele trui gedragen door de leider?",
+      "correctAnswer": "Wielrennen",
+      "incorrectAnswers": ["Voetbal", "Schaatsen", "Zeilen"]
+    },
+    {
+      "id": "spo-e-05",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "Welke typisch Nederlandse wintersport wordt gereden op natuurijs?",
+      "correctAnswer": "Schaatsen",
+      "incorrectAnswers": ["Skieen", "IJshockey", "Bobsleeeen"]
+    },
+    {
+      "id": "spo-e-06",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "Welke kleur shirt draagt het Nederlandse voetbalelftal?",
+      "correctAnswer": "Oranje",
+      "incorrectAnswers": ["Rood", "Blauw", "Wit"]
+    },
+    {
+      "id": "spo-e-07",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "easy",
+      "question": "Hoeveel sets moet je winnen om een tenniswedstrijd te winnen bij de mannen op Grand Slams?",
+      "correctAnswer": "3 van de 5",
+      "incorrectAnswers": ["2 van de 3", "4 van de 7", "5 van de 9"]
+    },
+    {
+      "id": "spo-m-01",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "Welke Nederlandse voetballer werd drie keer Europees Voetballer van het Jaar?",
+      "correctAnswer": "Johan Cruijff",
+      "incorrectAnswers": ["Marco van Basten", "Ruud Gullit", "Dennis Bergkamp"]
+    },
+    {
+      "id": "spo-m-02",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "In welke stad werden de Olympische Spelen van 1936 gehouden?",
+      "correctAnswer": "Berlijn",
+      "incorrectAnswers": ["Parijs", "Londen", "Rome"]
+    },
+    {
+      "id": "spo-m-03",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "Welke wielrenner won de Tour de France vijf keer op rij tussen 1991 en 1995?",
+      "correctAnswer": "Miguel Indurain",
+      "incorrectAnswers": ["Eddy Merckx", "Bernard Hinault", "Laurent Fignon"]
+    },
+    {
+      "id": "spo-m-04",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "Welke sport wordt ook wel de 'sport der koningen' genoemd?",
+      "correctAnswer": "Paardenrennen",
+      "incorrectAnswers": ["Polo", "Golf", "Schermen"]
+    },
+    {
+      "id": "spo-h-01",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "hard",
+      "question": "In welk jaar won Nederland voor het eerst het Europees Kampioenschap voetbal?",
+      "correctAnswer": "1988",
+      "incorrectAnswers": ["1974", "1992", "1978"]
+    },
+    {
+      "id": "spo-h-02",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "hard",
+      "question": "Welke Elfstedentocht wordt beschouwd als de zwaarste ooit?",
+      "correctAnswer": "1963",
+      "incorrectAnswers": ["1947", "1954", "1986"]
+    },
+    {
+      "id": "spo-h-03",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "hard",
+      "question": "Welke Nederlandse zwemster won goud op de 100 meter vrije slag bij de Olympische Spelen van 1968?",
+      "correctAnswer": "Ada Kok",
+      "incorrectAnswers": ["Inge de Bruijn", "Enith Brigitha", "Rie Mastenbroek"]
+    },
+    {
+      "id": "ani-e-01",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Welk dier wordt de koning van de jungle genoemd?",
+      "correctAnswer": "De leeuw",
+      "incorrectAnswers": ["De tijger", "De olifant", "De gorilla"]
+    },
+    {
+      "id": "ani-e-02",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Welk dier geeft melk die we drinken?",
+      "correctAnswer": "De koe",
+      "incorrectAnswers": ["Het schaap", "Het paard", "De geit"]
+    },
+    {
+      "id": "ani-e-03",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Wat voor dier is een dolfijn?",
+      "correctAnswer": "Een zoogdier",
+      "incorrectAnswers": ["Een vis", "Een amfibie", "Een reptiel"]
+    },
+    {
+      "id": "ani-e-04",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Hoeveel poten heeft een spin?",
+      "correctAnswer": "8",
+      "incorrectAnswers": ["6", "10", "12"]
+    },
+    {
+      "id": "ani-e-05",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Welke vogel kan zijn kop bijna helemaal omdraaien?",
+      "correctAnswer": "De uil",
+      "incorrectAnswers": ["De adelaar", "De papegaai", "De zwaan"]
+    },
+    {
+      "id": "ani-e-06",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Welk dier is het grootste op het land?",
+      "correctAnswer": "De Afrikaanse olifant",
+      "incorrectAnswers": ["De neushoorn", "Het nijlpaard", "De giraffe"]
+    },
+    {
+      "id": "ani-e-07",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "easy",
+      "question": "Wat eten panda's het liefst?",
+      "correctAnswer": "Bamboe",
+      "incorrectAnswers": ["Eucalyptus", "Bessen", "Noten"]
+    },
+    {
+      "id": "ani-m-01",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Hoe lang is een olifant gemiddeld zwanger?",
+      "correctAnswer": "Ongeveer 22 maanden",
+      "incorrectAnswers": ["Ongeveer 12 maanden", "Ongeveer 9 maanden", "Ongeveer 18 maanden"]
+    },
+    {
+      "id": "ani-m-02",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Welke vogel legt het grootste ei?",
+      "correctAnswer": "De struisvogel",
+      "incorrectAnswers": ["De emoe", "De condor", "De albatros"]
+    },
+    {
+      "id": "ani-m-03",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Welk dier slaapt het meeste per dag, zo'n 20 uur?",
+      "correctAnswer": "De koala",
+      "incorrectAnswers": ["De luiaard", "De kat", "De vleermuis"]
+    },
+    {
+      "id": "ani-m-04",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Welk zeedier heeft drie harten?",
+      "correctAnswer": "De octopus",
+      "incorrectAnswers": ["De kwal", "De inktvis", "De zeester"]
+    },
+    {
+      "id": "ani-m-05",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Welke vlinder is bekend om zijn jaarlijkse trek van duizenden kilometers?",
+      "correctAnswer": "De monarchvlinder",
+      "incorrectAnswers": ["De koninginnepage", "De distelvlinder", "De dagpauwoog"]
+    },
+    {
+      "id": "ani-h-01",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "hard",
+      "question": "Welk dier is het snelste op het land?",
+      "correctAnswer": "De jachtluipaard",
+      "incorrectAnswers": ["De springbok", "De haas", "De struisvogel"]
+    },
+    {
+      "id": "ani-h-02",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "hard",
+      "question": "Hoe heet de enige giftige zoogdiersoort in Nederland?",
+      "correctAnswer": "De waterspitsmuis",
+      "incorrectAnswers": ["De mol", "De boommarter", "De bunzing"]
+    },
+    {
+      "id": "ani-h-03",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "hard",
+      "question": "Welk dier heeft de langste levensduur op aarde, soms meer dan 500 jaar?",
+      "correctAnswer": "De Groenlandse haai",
+      "incorrectAnswers": ["De reuzenschildpad", "De groenlandse walvis", "De Japanse reuzenkrab"]
+    },
+    {
+      "id": "gen-e-09",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "easy",
+      "question": "Welke kleur krijg je als je rood en geel mengt?",
+      "correctAnswer": "Oranje",
+      "incorrectAnswers": ["Paars", "Groen", "Bruin"]
+    },
+    {
+      "id": "gen-m-06",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "medium",
+      "question": "Wat is de hoogste berg ter wereld?",
+      "correctAnswer": "Mount Everest",
+      "incorrectAnswers": ["K2", "Kangchenjunga", "Mont Blanc"]
+    },
+    {
+      "id": "gen-h-04",
+      "category": "Algemene Kennis",
+      "theme": "general",
+      "difficulty": "hard",
+      "question": "Welke woestijn is de grootste ter wereld?",
+      "correctAnswer": "De Sahara",
+      "incorrectAnswers": ["De Gobi", "De Kalahari", "De Atacama"]
+    },
+    {
+      "id": "sci-m-06",
+      "category": "Wetenschap",
+      "theme": "science",
+      "difficulty": "medium",
+      "question": "Welk vitamine krijg je vooral van zonlicht?",
+      "correctAnswer": "Vitamine D",
+      "incorrectAnswers": ["Vitamine C", "Vitamine A", "Vitamine B12"]
+    },
+    {
+      "id": "his-m-06",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "medium",
+      "question": "Welke koningin regeerde het langst in de Nederlandse geschiedenis?",
+      "correctAnswer": "Koningin Wilhelmina",
+      "incorrectAnswers": ["Koningin Juliana", "Koningin Beatrix", "Koningin Emma"]
+    },
+    {
+      "id": "his-h-05",
+      "category": "Geschiedenis",
+      "theme": "history",
+      "difficulty": "hard",
+      "question": "In welk jaar vond de VOC haar eerste reis naar Indie?",
+      "correctAnswer": "1602",
+      "incorrectAnswers": ["1595", "1610", "1621"]
+    },
+    {
+      "id": "ent-m-06",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "medium",
+      "question": "Welk televisieprogramma begon in 1999 met het opsluiten van mensen in een huis?",
+      "correctAnswer": "Big Brother",
+      "incorrectAnswers": ["Expeditie Robinson", "Survivor", "The Mole"]
+    },
+    {
+      "id": "ent-h-04",
+      "category": "Entertainment",
+      "theme": "entertainment",
+      "difficulty": "hard",
+      "question": "Welke Nederlandse acteur speelde de turkse fruitman in de film Turks Fruit?",
+      "correctAnswer": "Rutger Hauer",
+      "incorrectAnswers": ["Jeroen Krabbe", "Derek de Lint", "Huub Stapel"]
+    },
+    {
+      "id": "spo-m-05",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "medium",
+      "question": "In welke stad werden de eerste moderne Olympische Spelen gehouden in 1896?",
+      "correctAnswer": "Athene",
+      "incorrectAnswers": ["Parijs", "Londen", "Rome"]
+    },
+    {
+      "id": "spo-h-04",
+      "category": "Sport",
+      "theme": "sports",
+      "difficulty": "hard",
+      "question": "Welke schaatser won de Elfstedentocht van 1997, de laatste die gereden werd?",
+      "correctAnswer": "Henk Angenent",
+      "incorrectAnswers": ["Evert van Benthem", "Jan-Roelof Kruithof", "Piet Kleine"]
+    },
+    {
+      "id": "ani-m-06",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "medium",
+      "question": "Welk dier is het nationaal symbool van Australie naast de kangoeroe?",
+      "correctAnswer": "De emoe",
+      "incorrectAnswers": ["De koala", "Het vogelbekdier", "De wombat"]
+    },
+    {
+      "id": "ani-h-04",
+      "category": "Dieren",
+      "theme": "animals",
+      "difficulty": "hard",
+      "question": "Welk dier kan het langste zonder water overleven?",
+      "correctAnswer": "De kangoeroe rat",
+      "incorrectAnswers": ["De kameel", "De schildpad", "De giraffe"]
+    },
+    {
+      "id": "art-m-05",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "medium",
+      "question": "Welke Nederlandse schrijver schreef De Aanslag?",
+      "correctAnswer": "Harry Mulisch",
+      "incorrectAnswers": ["Gerard Reve", "W.F. Hermans", "Hella Haasse"]
+    },
+    {
+      "id": "art-h-04",
+      "category": "Kunst & Cultuur",
+      "theme": "arts",
+      "difficulty": "hard",
+      "question": "In welke stad staat het schilderij De Sterrennacht van Van Gogh?",
+      "correctAnswer": "New York",
+      "incorrectAnswers": ["Amsterdam", "Parijs", "Londen"]
+    }
+  ]
+}

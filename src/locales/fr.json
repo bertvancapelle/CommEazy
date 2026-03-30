@@ -3091,6 +3091,17 @@
       "showStats": "Afficher les statistiques",
       "hideStats": "Masquer les statistiques",
       "timeUp": "Temps écoulé !",
+      "download": {
+        "checking": "Vérification...",
+        "title": "Télécharger les questions",
+        "description": "Pour jouer au Trivia, les questions doivent d'abord être téléchargées. Cela ne doit être fait qu'une seule fois.",
+        "size": "Environ 1,5 Mo",
+        "button": "Télécharger",
+        "downloading": "Téléchargement en cours...",
+        "pleaseWait": "Veuillez patienter",
+        "error": "Le téléchargement a échoué. Veuillez vérifier votre connexion internet et réessayer.",
+        "complete": "Téléchargement terminé !"
+      },
       "themes": {
         "mixed": "Tout",
         "general": "Culture générale",

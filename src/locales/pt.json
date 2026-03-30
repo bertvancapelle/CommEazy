@@ -3098,6 +3098,17 @@
       "showStats": "Mostrar estatísticas",
       "hideStats": "Ocultar estatísticas",
       "timeUp": "Tempo esgotado!",
+      "download": {
+        "checking": "A verificar...",
+        "title": "Descarregar perguntas",
+        "description": "Para jogar Trivia, as perguntas precisam de ser descarregadas primeiro. Isto só precisa de ser feito uma vez.",
+        "size": "Aproximadamente 1,5 MB",
+        "button": "Descarregar",
+        "downloading": "A descarregar...",
+        "pleaseWait": "Por favor aguarde",
+        "error": "O descarregamento falhou. Verifique a sua ligação à internet e tente novamente.",
+        "complete": "Descarregamento concluído!"
+      },
       "themes": {
         "mixed": "Tudo",
         "general": "Conhecimento Geral",
