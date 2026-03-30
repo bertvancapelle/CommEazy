@@ -483,8 +483,6 @@ class LiquidGlassNativeView: UIView {
     // MARK: Layout
     // ============================================================
 
-    private var lastBounds: CGRect = .zero
-
     override func layoutSubviews() {
         super.layoutSubviews()
         // DO NOT set glassEffectView?.frame = bounds here!
@@ -497,11 +495,14 @@ class LiquidGlassNativeView: UIView {
             gradientLayer.frame = glassEffectView?.bounds ?? bounds
         }
 
-        // Recreate effect if bounds changed significantly (first layout or resize)
-        // This ensures the glass effect is created after the view has its proper size
-        if hasReceivedProps && !bounds.isEmpty && bounds != lastBounds {
-            lastBounds = bounds
-            NSLog("[LiquidGlass] layoutSubviews - recreating effect with bounds: %@", NSCoder.string(for: bounds))
+        // Create glass effect on FIRST meaningful layout only.
+        // Subsequent layout changes (e.g., Modal slide animation) are handled by
+        // Auto Layout constraints — no need to recreate the entire effect.
+        // Recreating on every bounds change causes a race condition: the glass container
+        // is removed and re-inserted at index 0, which disrupts React Native children's
+        // subview ordering and makes the overlay unresponsive to touches.
+        if hasReceivedProps && !bounds.isEmpty && glassEffectView == nil {
+            NSLog("[LiquidGlass] layoutSubviews - first layout with bounds: %@", NSCoder.string(for: bounds))
             updateGlassEffect()
         }
     }

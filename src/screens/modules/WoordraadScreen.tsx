@@ -73,7 +73,7 @@ const INPUT_FONT_SIZE = 28;
 const KEYBOARD_ROWS = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
   ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-  ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
+  ['DEL', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER'],
 ];
 
 const KEY_GAP = 4;
@@ -708,27 +708,30 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
                 <View key={rowIndex} style={styles.keyboardRow}>
                   {row.map((key) => {
                     const isSpecial = key === 'ENTER' || key === 'DEL';
+                    const isEnter = key === 'ENTER';
                     const keyStatus = !isSpecial ? gameState?.letterStatuses[key] : undefined;
 
                     return (
                       <HapticTouchable
                         key={key}
                         onPress={() => handleKeyPress(key)}
-                        hapticType="tap"
+                        hapticType={isEnter ? 'success' : 'tap'}
                         style={[
                           styles.key,
                           isSpecial && styles.keyWide,
                           {
-                            backgroundColor: keyStatus
-                              ? FEEDBACK_COLORS[keyStatus]
-                              : themeColors.surface,
-                            borderColor: themeColors.border,
+                            backgroundColor: isEnter
+                              ? moduleColor
+                              : keyStatus
+                                ? FEEDBACK_COLORS[keyStatus]
+                                : themeColors.surface,
+                            borderColor: isEnter ? moduleColor : themeColors.border,
                           },
                         ]}
                         accessibilityRole="button"
                         accessibilityLabel={
                           key === 'DEL' ? t('games.woordraad.delete')
-                            : key === 'ENTER' ? t('games.woordraad.submit')
+                            : isEnter ? t('games.woordraad.submit')
                               : key
                         }
                       >
@@ -739,13 +742,15 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
                             style={[
                               styles.keyText,
                               {
-                                color: keyStatus && keyStatus !== 'empty'
+                                color: isEnter
                                   ? '#FFFFFF'
-                                  : themeColors.textPrimary,
+                                  : keyStatus && keyStatus !== 'empty'
+                                    ? '#FFFFFF'
+                                    : themeColors.textPrimary,
                               },
                             ]}
                           >
-                            {key === 'ENTER' ? '✓' : key}
+                            {isEnter ? '✓' : key}
                           </Text>
                         )}
                       </HapticTouchable>
