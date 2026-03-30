@@ -6,34 +6,38 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-30
-- **Sessie:** Games Session 10 — LiquidGlassModule debounce fix (Sudoku GameOverModal bug)
-- **Commit:** `a30c38e` fix: debounce LiquidGlassModule prop updates to prevent GameOverModal touch bug
+- **Sessie:** Games Session 11 — Solitaire card visual redesign
+- **Commit:** `d4e174e` feat: redesign Solitaire cards — traditional playing card visuals
 
 ## Voltooide Taken Deze Sessie
 
-1. **LiquidGlassModule.swift debounce fix:**
-   - **Bug:** Sudoku game-over toonde wit transparant onresponsief overlay, navigeerde na paar seconden automatisch naar HomeScreen
-   - **Root cause:** 5 prop `didSet` handlers riepen elk `updateGlassEffect()` aan — elke call verwijdert glass container (`removeFromSuperview`) en maakt nieuwe aan (`insertSubview at: 0`), wat React Native children's subview ordering verstoort → touches bereiken modal content niet
-   - **Fix:** 50ms debounce timer (`scheduleDebouncedUpdate()`) batcht rapid prop changes in één `updateGlassEffect()` call
-   - **Wijzigingen in `ios/LiquidGlassModule.swift`:**
-     - `propUpdateTimer: Timer?` property toegevoegd
-     - Alle 5 `didSet` handlers: `updateGlassEffect()` → `scheduleDebouncedUpdate()`
-     - `cornerRadius` behoudt immediate visuele updates (layer.cornerRadius, clipsToBounds) naast debounced full update
-     - `deinit` invalideert timer
-     - `scheduleDebouncedUpdate()` methode met 50ms Timer
+1. **Solitaire kaart visuele redesign (`src/screens/modules/SolitaireScreen.tsx`):**
+   - **Card sizing gemaximaliseerd:** CARD_GAP 4→2pt, TABLEAU_PADDING 8→4pt → ~54×75pt op iPhone 14 (was 47×65pt)
+   - **Dual-corner design:** Rank+suit in top-left EN bottom-right (180° geroteerd), zoals echte speelkaarten
+   - **SVG face card artwork:** Jack (hoed+tuniek), Queen (kroon+jurk+ketting), King (kroon+mantel+baard) via inline react-native-svg
+   - **Ace:** Groot gecentreerd suit symbool
+   - **Number cards (2-10):** Standaard pip layout met gepositioneerde suit symbolen (PIP_LAYOUTS lookup table)
+   - **Card back redesign:** SVG diamant patroon met center ornament, vervangt emoji 🂠
+   - **Nieuwe styles:** cornerTL, cornerBR, cornerRank, cornerSuit, cardCenter, aceSuit, pipContainer, pip, cardBackInner
+   - **Verwijderde styles:** cardRank, cardSuit, cardBackText (vervangen door corner-based layout)
 
 ## Openstaande Taken
 
-1. **Trivia UI verbeteringen (plan beschikbaar):**
+1. **DevModePanel draggable button (PNA conclusie, niet geïmplementeerd):**
+   - Maak de DEV floating button versleepbaar met long-press
+   - Persisteer positie in AsyncStorage
+   - PNA conclusie bereikt, nog niet geïmplementeerd
+
+2. **Trivia UI verbeteringen (plan beschikbaar):**
    - Plan: `delegated-petting-lecun.md`
    - 4 wijzigingen: gamepad rechts, feedback overlay, configureerbare timer, AsyncStorage persistentie
    - Nog NIET gestart
 
-2. **Nederlandse vertaling trivia-nl.json (GEBRUIKER HANDELT DIT AF):**
+3. **Nederlandse vertaling trivia-nl.json (GEBRUIKER HANDELT DIT AF):**
    - 4.216 vragen moeten vertaald worden van Engels naar Nederlands
    - Script `translate_to_dutch.py` staat klaar maar vereist Anthropic API credits
 
-3. **Eerder openstaand (ongewijzigd):**
+4. **Eerder openstaand (ongewijzigd):**
    - Dead code categorie 2 — 8 componenten voor ongebouwde features
    - 3 transparent modals met LiquidGlassView te valideren
    - Uncommitted changes in `MediaIndicator.tsx` + `AppleMusicScreen.tsx`
@@ -44,20 +48,24 @@
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
-Geen.
+1. **DevModePanel draggable button** — Maak DEV button versleepbaar, persisteer positie in AsyncStorage
 
 ## Relevante Beslissingen Deze Sessie
 
 | Beslissing | Rationale |
 |------------|-----------|
-| 50ms debounce i.p.v. direct `updateGlassEffect()` | React Native set props one-by-one; 5 calls = 5 remove+recreate cycles = subview ordering bug |
-| Timer-based i.p.v. `DispatchQueue.main.async` | Timer met 50ms interval batcht betrouwbaarder dan single runloop cycle — meerdere props kunnen over meerdere frames komen |
-| `cornerRadius` behoudt immediate visual updates | Layer cornerRadius en clipsToBounds veroorzaken geen subview churn, alleen de full `updateGlassEffect()` doet dat |
+| CARD_GAP 4→2, TABLEAU_PADDING 8→4 | Maximaliseert kaartgrootte zonder scrolling; 7 kolommen moeten op scherm passen |
+| Inline SVG i.p.v. PNG/externe assets | Consistent met Icon.tsx pattern, zero nieuwe bestanden, geen bundle pipeline changes |
+| Dual-corner rank+suit (TL + BR rotated) | Standaard playing card design — herkenbaar voor senioren |
+| PipLayout met percentage-based positioning | Schaalt automatisch mee met kaartgrootte op verschillende devices |
+| Geen horizontaal scrollen | Gebruiker keuze — alle 7 kolommen moeten zichtbaar zijn zonder scroll |
 
 ## Context voor Volgende Sessie
 
+- **Solitaire card components:** CardView (dual-corner), CardBackView (SVG diamonds), PipLayout (2-10), FaceCardArt (J/Q/K SVG), SuitEmblem (suit shapes)
+- **Card sizing constants:** CARD_GAP=2, TABLEAU_PADDING=4, CARD_WIDTH berekend, CARD_HEIGHT=1.4×width
+- **Corner text sizing:** CORNER_RANK_SIZE=28% card width, CORNER_SUIT_SIZE=22%, CENTER_PIP_SIZE=28%
 - **LiquidGlassModule.swift:** Debounce pattern via `propUpdateTimer` (50ms) — alle prop `didSet` handlers gebruiken `scheduleDebouncedUpdate()`
-- **Eerdere fix (sessie 7, commit `59766d9`):** `layoutSubviews` guard (`glassEffectView == nil`) voorkomt recreatie tijdens layout — maar `didSet` handlers omzeilden deze guard → opgelost met debounce
 - **Game screen ModuleHeader pattern:** `showGridButton={false}` + `rightAccessory={renderGamepadButton(onBack)}`
 - **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
 - **Engines locatie:** `src/engines/{woordraad,sudoku,solitaire,memory,trivia,woordy}/`
