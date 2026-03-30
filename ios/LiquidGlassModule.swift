@@ -69,9 +69,16 @@ class LiquidGlassNativeView: UIView {
 
     // Glass effect view (UIVisualEffectView on iOS 26+, UIView for fallback)
     private var glassEffectView: UIView?
-    
+
     // Track if we've received props from React Native
     private var hasReceivedProps = false
+
+    // Debounce timer for prop changes — React Native sends props one-by-one,
+    // causing multiple updateGlassEffect() calls per render cycle.
+    // Each call removes + re-inserts the glass container at index 0, which
+    // disrupts React Native children's subview ordering and breaks touch handling.
+    // The timer batches rapid prop changes into a single update.
+    private var propUpdateTimer: Timer?
 
     // ============================================================
     // MARK: Props from React Native
@@ -82,33 +89,34 @@ class LiquidGlassNativeView: UIView {
         didSet {
             NSLog("[LiquidGlass] 🎨 tintColorHex set to: %@ (was: %@)", tintColorHex, oldValue)
             hasReceivedProps = true
-            updateGlassEffect()
+            scheduleDebouncedUpdate()
         }
     }
 
     /// Tint intensity (0.0 - 1.0)
     @objc var tintIntensity: CGFloat = 0.5 {
-        didSet { updateGlassEffect() }
+        didSet { scheduleDebouncedUpdate() }
     }
 
     /// Glass style variant: "regular" or "prominent"
     @objc var glassStyle: String = "regular" {
-        didSet { updateGlassEffect() }
+        didSet { scheduleDebouncedUpdate() }
     }
 
     /// Corner radius
     @objc var cornerRadius: CGFloat = 0 {
         didSet {
+            // Immediate visual updates (no subview churn)
             layer.cornerRadius = cornerRadius
             glassEffectView?.layer.cornerRadius = cornerRadius
             clipsToBounds = cornerRadius > 0
-            updateGlassEffect()
+            scheduleDebouncedUpdate()
         }
     }
 
     /// Fallback color for iOS <26 (hex format)
     @objc var fallbackColorHex: String = "#007AFF" {
-        didSet { updateGlassEffect() }
+        didSet { scheduleDebouncedUpdate() }
     }
 
     // ============================================================
@@ -135,9 +143,26 @@ class LiquidGlassNativeView: UIView {
         NSLog("[LiquidGlass] 🔧 setupView() called - iOS %d.%d.%d", version.majorVersion, version.minorVersion, version.patchVersion)
     }
 
+    deinit {
+        propUpdateTimer?.invalidate()
+    }
+
     // ============================================================
     // MARK: Glass Effect
     // ============================================================
+
+    /// Debounces rapid prop changes into a single updateGlassEffect() call.
+    /// React Native sets props one-by-one (tintColorHex, tintIntensity, glassStyle,
+    /// cornerRadius, fallbackColorHex), each triggering a didSet. Without debouncing,
+    /// this causes 5 consecutive remove+recreate cycles of the glass container,
+    /// disrupting React Native children's subview ordering and breaking touch handling
+    /// (the GameOverModal "white unresponsive overlay" bug).
+    private func scheduleDebouncedUpdate() {
+        propUpdateTimer?.invalidate()
+        propUpdateTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: false) { [weak self] _ in
+            self?.updateGlassEffect()
+        }
+    }
 
     private func updateGlassEffect() {
         // Only update if we've received props from React Native
