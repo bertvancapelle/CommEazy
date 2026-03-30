@@ -7,7 +7,7 @@
 
 - **Datum:** 2026-03-30
 - **Sessie:** Games Session 3a — Woordy design document (PNA)
-- **Commit:** (wordt bijgewerkt na push)
+- **Commit:** `446954b` — docs: add Woordy game design document
 
 ## Voltooide Taken Deze Sessie
 
