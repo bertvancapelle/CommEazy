@@ -6,57 +6,49 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-30
-- **Sessie:** Games Session 3b — Trivia design document (PNA)
-- **Commit:** 40e31f7 — docs: add Trivia game design document
+- **Sessie:** Games Session 4 — Trivia + Woordy implementatie
+- **Commit:** a2ce34c — feat: implement Trivia and Woordy games
 
 ## Voltooide Taken Deze Sessie
 
-1. **Woordy Game Design Document** — Volledig PNA-ontwerp afgerond:
-   - `.claude/plans/WOORDY_DESIGN.md` — Compleet design document
-   - 15×15 bord met pinch-to-zoom, tap-to-place (geen drag)
-   - 7 tegels per speler, 2 blanco tegels (0 punten)
-   - Bonusvelden: DL, TL, DW, TW (random per spel)
-   - Trivia-velden: 1-2 per spel, verborgen, +10/-10
-   - Universele letterwaarden (range 1-5, alle 13 talen)
-   - Hunspell dictionaries (on-demand download per taal)
-   - Multiplayer via XMPP (invite-based, zelfde taal vereist)
+1. **Trivia Game — Volledige implementatie:**
+   - Engine: `src/engines/trivia/engine.ts` — Pure game logic (createInitialState, submitAnswer, advanceToNextQuestion, timer handling, scoring, star rating, serialization)
+   - Types: `src/engines/trivia/types.ts` — TriviaState, TriviaDisplayQuestion, TriviaAnswerResult, TriviaDifficulty, TriviaTheme, DIFFICULTY_POINTS
+   - Question bank: `src/engines/trivia/questionBank.ts` — ~40 bundled questions across 7 themes, getQuestions() with filtering
+   - Screen: `src/screens/modules/TriviaScreen.tsx` — 4 phases (menu → category → playing → gameover), difficulty/timer/questions-per-round settings, category picker grid, question display with 4 options, feedback (correct/wrong), progress bar, score tracking
+   - i18n: `games.trivia.*` keys in alle 13 talen (18 keys per taal + 8 theme namen)
+   - Registratie: GameType, navigation, liquidGlass (gold/amber #FF8F00), ModuleColorsContext, GameLobbyScreen route
 
-2. **Trivia Game Design Document** — Volledig PNA-ontwerp afgerond:
-   - `.claude/plans/TRIVIA_DESIGN.md` — Compleet design document
-   - Multiple-choice (4 opties), tap-to-answer
-   - Moeilijkheidsgraden: makkelijk (+10) / gemiddeld (+20) / moeilijk (+30)
-   - Vragen per ronde: instelbaar 5/10/15/20 (default 10)
-   - Timer: optioneel uit/15s/30s/60s (default uit)
-   - Categorieën: 6-8 brede thema's, gebruiker kiest per ronde
-   - Bron: OpenTDB (~5.200 vragen, CC BY-SA 4.0)
-   - On-demand download per taal (~1.5 MB/taal)
-   - Gedeelde download service met Woordy dictionaries
-   - Solo + multiplayer (synchroon per vraag via XMPP)
-   - Woordy erft moeilijkheid uit Trivia instellingen
+2. **Woordy Game — Volledige implementatie:**
+   - Engine: `src/engines/woordy/engine.ts` — createInitialState, selectTile, placeTile, removePendingTile, setBlankTileLetter, validatePlacement, confirmPlacement, passTurn, swapTiles, resignGame, previewScore, calculateFinalScores, getWinner, getStarRating, serialization
+   - Types: `src/engines/woordy/types.ts` — BOARD_SIZE=15, BoardCell, Tile, PlacedTile, WoordyState, BonusType (DL/TL/DW/TW), LETTER_VALUES (universal 1-5), scoring constants
+   - Board generator: `src/engines/woordy/boardGenerator.ts` — Random bonus field placement (DL:24, TL:12, DW:16, TW:8) + 2 trivia fields
+   - Letter bag: `src/engines/woordy/letterBag.ts` — Distributions for 11 talen, createLetterBag, drawTiles, shuffleBag
+   - Scoring: `src/engines/woordy/scoring.ts` — findFormedWords, calculateWordScore (with multipliers), calculateTurnScore, calculateEndGameAdjustment
+   - Screen: `src/screens/modules/WoordyScreen.tsx` — Menu phase (title, description, play button) + Playing phase (scoreboard, pinch-to-zoom 15×15 board, tile rack, confirm/pass/resign actions, score preview)
+   - i18n: `games.woordy.*` + `navigation.woordy` keys in alle 13 talen (20 keys per taal)
+   - Registratie: GameType, navigation (gameWoordy → document-text icon), liquidGlass (deep purple #6A1B9A), ModuleColorsContext, GameLobbyScreen route
+
+3. **GameLobbyScreen bijgewerkt:**
+   - Alle 6 games hebben actieve routes (woordraad, sudoku, solitaire, memory, trivia, woordy)
+   - GAME_DESCRIPTION_KEYS uitgebreid voor trivia en woordy
 
 ## Openstaande Taken
 
-1. **Trivia implementatie** — Design voltooid, code nog niet gestart:
-   - Engine: `src/engines/trivia/` (engine, questionBank, types)
-   - Download service: `src/services/downloadService.ts` (gedeeld)
-   - Screen: `src/screens/modules/TriviaScreen.tsx`
-   - Components: TriviaQuestionCard, TriviaProgressBar, TriviaScoreboard, TriviaCategoryPicker
-   - i18n: `games.trivia.*` + `navigation.trivia` + categorienamen in 13 talen
-   - GameLobbyScreen: route uncomment + import
-   - Zie `TRIVIA_DESIGN.md` voor volledige specificatie
+1. **Trivia verbeteringen (toekomstig):**
+   - Download service voor OpenTDB vragen (momenteel ~40 gebundelde vragen)
+   - Multiplayer via XMPP (synchroon per vraag)
+   - Woordy trivia-velden integratie (vragen delen met standalone Trivia)
 
-2. **Woordy implementatie** — Design voltooid, code nog niet gestart:
-   - Engine: `src/engines/woordy/` (bord, scoring, validatie, letterzak)
-   - Screen: `src/screens/modules/WoordyScreen.tsx`
-   - Components: WoordyBoard, WoordyTileRack, WoordyTile, WoordyScoreboard
-   - Woordenlijst: Hunspell dictionary integratie (SQLite)
-   - i18n: `games.woordy.*` + `navigation.woordy` in 13 talen
-   - GameLobbyScreen: route toevoegen
-   - Zie `WOORDY_DESIGN.md` voor volledige specificatie
+2. **Woordy verbeteringen (toekomstig):**
+   - Woordenlijst validatie (Hunspell dictionary integratie, nu placeholder)
+   - Multiplayer via XMPP (turn-based)
+   - Download service voor dictionaries per taal
+   - Taal selectie in menu (nu hardcoded 'nl')
 
-3. **Final Polish** — Na implementatie van Trivia + Woordy:
-   - Consistentie check over alle 6 games (woordraad, sudoku, solitaire, memory, trivia, woordy)
-   - GameLobbyScreen: alle routes actief
+3. **Final Polish:**
+   - Consistentie check over alle 6 games
+   - Visuele fine-tuning van board rendering (Woordy)
 
 4. **Eerder openstaand (ongewijzigd):**
    - Dead code categorie 2 — 8 componenten voor ongebouwde features
@@ -69,34 +61,25 @@
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
-Geen — Zowel Woordy als Trivia design zijn voltooid en gedocumenteerd.
+Geen.
 
 ## Relevante Beslissingen Deze Sessie
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Universele letterwaarden (1-5) | Eenvoudiger voor senioren, consistent ongeacht taal |
-| Tap-to-place i.p.v. drag | Drag & drop is moeilijk voor senioren |
-| Geen tijdslimiet (beide games) | Senioren mogen rustig nadenken |
-| OpenTDB als trivia bron | Gratis, CC BY-SA 4.0, ~5.200 geverifieerde vragen |
-| On-demand download per taal | Voorkomt grote app bundle (trivia ~1.5MB, dictionary ~3-12MB) |
-| Gedeelde download service | Zelfde flow voor trivia vragen en woordy dictionaries |
-| Woordy erft trivia moeilijkheid | Eén instelling, twee games — eenvoud |
-| Simpele scoring (geen streaks) | Voorspelbaar, geen frustratie |
-| Synchroon multiplayer trivia | "Samen quizzen" gevoel, direct vergelijken |
-| 6-8 brede categorie thema's | 24 OpenTDB categorieën is te veel voor senioren |
-| Timer optioneel (default uit) | Geen druk voor senioren, optie voor gevorderden |
+| ~40 gebundelde trivia vragen | Voldoende voor MVP, OpenTDB download later |
+| Woordy hardcoded taal 'nl' | Taal selectie als toekomstige feature |
+| Deep purple (#6A1B9A) voor Woordy | Onderscheidend van andere game kleuren |
+| document-text icoon voor Woordy | Past bij woord/letter thema |
+| Placeholder woordvalidatie | Hunspell integratie is complex, eerst UI valideren |
 
 ## Context voor Volgende Sessie
 
-- **Design documenten:** Lees `TRIVIA_DESIGN.md` en `WOORDY_DESIGN.md` EERST
-- **Implementatie volgorde:** Trivia eerst (eenvoudiger), dan Woordy (complexer)
-- **Gedeelde download service:** Moet eerst gebouwd worden (dependency voor beide games)
-- **Trivia vragenbank:** Gedeeld tussen standalone Trivia en Woordy trivia-velden
-- **Game screens pattern:** Alle screens gebruiken `backIcon="gamepad"` + `handleQuit` met bevestigingsdialoog
-- **GameHeader actions:** Woordraad/Memory = `[]`, Sudoku = `[hint]`, Solitaire = `[autoComplete?, hint]`, Trivia = `[]`
-- **GameLobbyScreen.tsx:** Heeft commented-out route voor trivia (lijn 79-80)
-- **Engines locatie:** `src/engines/{woordraad,sudoku,solitaire,memory}/engine.ts`
-- **Screens locatie:** `src/screens/modules/{Woordraad,Sudoku,Solitaire,Memory}Screen.tsx`
+- **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
+- **Engines locatie:** `src/engines/{woordraad,sudoku,solitaire,memory,trivia,woordy}/`
+- **Screens locatie:** `src/screens/modules/{Woordraad,Sudoku,Solitaire,Memory,Trivia,Woordy}Screen.tsx`
+- **GameLobbyScreen:** Alle 6 routes actief, iterates over ALL_GAME_TYPES
+- **Trivia engine:** Pure functions, no side effects, ~40 bundled questions
+- **Woordy engine:** Pure functions, 15×15 board, tap-to-place, universal letter values
 - **WatermelonDB schema:** Versie 30 (game_sessions + game_stats tabellen)
 - **XMPP game protocol:** Types gedefinieerd, hooks gebouwd, sendGameStanza is stub
