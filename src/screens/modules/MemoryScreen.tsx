@@ -505,9 +505,9 @@ const styles = StyleSheet.create({
   },
   // Menu
   menuContent: {
-    flex: 1,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
   },
   menuCard: {
     borderRadius: borderRadius.lg,

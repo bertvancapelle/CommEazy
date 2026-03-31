@@ -640,10 +640,9 @@ const styles = StyleSheet.create({
 
   // Menu
   menuContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
   },
   menuTitle: {
     ...typography.h2,
