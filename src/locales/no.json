@@ -2859,7 +2859,18 @@
       "firework": "Fyrverkeri",
       "twinkle": "Glimt",
       "chime": "Bjelle",
-      "balloonpop": "Ballong"
+      "balloonpop": "Ballong",
+      "loseSound": "Tapslyd",
+      "buzzer": "Summer",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Gli",
+      "drop": "Falle"
+    },
+    "settings": {
+      "title": "Innstillinger",
+      "tapToOpen": "Trykk for å åpne innstillinger",
+      "tapToClose": "Trykk for å lukke innstillinger"
     },
     "multiplayer": {
       "inviteSent": "Invitasjon sendt",

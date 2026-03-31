@@ -22,8 +22,10 @@ import {
   gameSoundService,
   TAP_SOUND_OPTIONS,
   WIN_SOUND_OPTIONS,
+  LOSE_SOUND_OPTIONS,
   type TapSoundId,
   type WinSoundId,
+  type LoseSoundId,
 } from '@/services/gameSoundService';
 
 // ============================================================
@@ -45,12 +47,14 @@ export function GameSoundPicker({ moduleColor }: GameSoundPickerProps) {
 
   const [tapSound, setTapSound] = useState<TapSoundId>('click');
   const [winSound, setWinSound] = useState<WinSoundId>('horn');
+  const [loseSound, setLoseSound] = useState<LoseSoundId>('buzzer');
 
   // Load settings on mount
   useEffect(() => {
     gameSoundService.loadSettings().then(settings => {
       setTapSound(settings.tapSound);
       setWinSound(settings.winSound);
+      setLoseSound(settings.loseSound);
     });
   }, []);
 
@@ -64,6 +68,12 @@ export function GameSoundPicker({ moduleColor }: GameSoundPickerProps) {
     setWinSound(id);
     gameSoundService.setWinSound(id);
     gameSoundService.previewWinSound(id);
+  }, []);
+
+  const handleLoseSoundChange = useCallback((id: LoseSoundId) => {
+    setLoseSound(id);
+    gameSoundService.setLoseSound(id);
+    gameSoundService.previewLoseSound(id);
   }, []);
 
   return (
@@ -129,6 +139,46 @@ export function GameSoundPicker({ moduleColor }: GameSoundPickerProps) {
             <HapticTouchable
               key={option.id}
               onPress={() => handleWinSoundChange(option.id)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={t(option.labelKey)}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: isSelected ? moduleColor : themeColors.surface,
+                  borderColor: isSelected ? moduleColor : themeColors.border,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  { color: isSelected ? '#FFFFFF' : themeColors.textPrimary },
+                ]}
+              >
+                {t(option.labelKey)}
+              </Text>
+            </HapticTouchable>
+          );
+        })}
+      </ScrollView>
+
+      {/* Lose sound row */}
+      <Text style={[styles.rowLabel, { color: themeColors.textPrimary }]}>
+        {t('games.sounds.loseSound')}
+      </Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.chipRow}
+        contentContainerStyle={styles.chipRowContent}
+      >
+        {LOSE_SOUND_OPTIONS.map(option => {
+          const isSelected = loseSound === option.id;
+          return (
+            <HapticTouchable
+              key={option.id}
+              onPress={() => handleLoseSoundChange(option.id)}
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
               accessibilityLabel={t(option.labelKey)}

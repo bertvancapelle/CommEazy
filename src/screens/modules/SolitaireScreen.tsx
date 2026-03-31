@@ -22,7 +22,7 @@ import { getCardImage } from '@/assets/cards';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon, ScrollViewWithIndicator } from '@/components';
-import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker } from '@/components/games';
+import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker, GameSettingsAccordion } from '@/components/games';
 import type { GameOverStat, DifficultyOption } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -346,45 +346,47 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
                   <Text style={styles.startButtonText}>{t('games.lobby.newGame')}</Text>
                 </HapticTouchable>
 
-                {/* Difficulty picker */}
-                <Text style={[styles.difficultyLabel, { color: themeColors.textPrimary }]}>
-                  {t('games.lobby.difficulty')}
-                </Text>
-                <DifficultyPicker
-                  selected={difficulty}
-                  onSelect={setDifficulty}
-                  options={DIFFICULTY_OPTIONS.map(o => ({ ...o, label: t(o.label) }))}
-                  moduleId={MODULE_ID}
-                />
-
-                <View style={{ height: spacing.md }} />
-
-                {/* Auto-move toggle */}
-                <HapticTouchable
-                  onPress={handleToggleAutoMove}
-                  style={styles.autoMoveRow}
-                  accessibilityRole="switch"
-                  accessibilityState={{ checked: autoMoveEnabled }}
-                  accessibilityLabel={t('games.solitaire.autoMove')}
-                >
-                  <Text style={[styles.autoMoveLabel, { color: themeColors.textPrimary }]}>
-                    {t('games.solitaire.autoMove')}
+                <GameSettingsAccordion moduleColor={moduleColor}>
+                  {/* Difficulty picker */}
+                  <Text style={[styles.difficultyLabel, { color: themeColors.textPrimary }]}>
+                    {t('games.lobby.difficulty')}
                   </Text>
-                  <View style={[
-                    styles.toggleTrack,
-                    { backgroundColor: autoMoveEnabled ? moduleColor : themeColors.border },
-                  ]}>
+                  <DifficultyPicker
+                    selected={difficulty}
+                    onSelect={setDifficulty}
+                    options={DIFFICULTY_OPTIONS.map(o => ({ ...o, label: t(o.label) }))}
+                    moduleId={MODULE_ID}
+                  />
+
+                  <View style={{ height: spacing.md }} />
+
+                  {/* Auto-move toggle */}
+                  <HapticTouchable
+                    onPress={handleToggleAutoMove}
+                    style={styles.autoMoveRow}
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: autoMoveEnabled }}
+                    accessibilityLabel={t('games.solitaire.autoMove')}
+                  >
+                    <Text style={[styles.autoMoveLabel, { color: themeColors.textPrimary }]}>
+                      {t('games.solitaire.autoMove')}
+                    </Text>
                     <View style={[
-                      styles.toggleThumb,
-                      { transform: [{ translateX: autoMoveEnabled ? 22 : 2 }] },
-                    ]} />
-                  </View>
-                </HapticTouchable>
+                      styles.toggleTrack,
+                      { backgroundColor: autoMoveEnabled ? moduleColor : themeColors.border },
+                    ]}>
+                      <View style={[
+                        styles.toggleThumb,
+                        { transform: [{ translateX: autoMoveEnabled ? 22 : 2 }] },
+                      ]} />
+                    </View>
+                  </HapticTouchable>
 
-                <View style={{ height: spacing.lg }} />
+                  <View style={{ height: spacing.lg }} />
 
-                {/* Sound settings */}
-                <GameSoundPicker moduleColor={moduleColor} />
+                  {/* Sound settings */}
+                  <GameSoundPicker moduleColor={moduleColor} />
+                </GameSettingsAccordion>
               </View>
 
               {/* Stats toggle */}

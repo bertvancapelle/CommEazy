@@ -22,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon, ScrollViewWithIndicator } from '@/components';
-import { GameHeader, GameOverModal, GameStatsView, GameSoundPicker } from '@/components/games';
+import { GameHeader, GameOverModal, GameStatsView, GameSoundPicker, GameSettingsAccordion } from '@/components/games';
 import type { GameOverStat } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -552,23 +552,25 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
                 </HapticTouchable>
 
                 {/* Legend */}
-                <View style={styles.legendSection}>
-                  <LegendItem
-                    color={FEEDBACK_COLORS.correct}
-                    label={t('games.woordraad.legendCorrect')}
-                  />
-                  <LegendItem
-                    color={FEEDBACK_COLORS.present}
-                    label={t('games.woordraad.legendPresent')}
-                  />
-                  <LegendItem
-                    color={FEEDBACK_COLORS.absent}
-                    label={t('games.woordraad.legendAbsent')}
-                  />
-                </View>
+                <GameSettingsAccordion moduleColor={moduleColor}>
+                  <View style={styles.legendSection}>
+                    <LegendItem
+                      color={FEEDBACK_COLORS.correct}
+                      label={t('games.woordraad.legendCorrect')}
+                    />
+                    <LegendItem
+                      color={FEEDBACK_COLORS.present}
+                      label={t('games.woordraad.legendPresent')}
+                    />
+                    <LegendItem
+                      color={FEEDBACK_COLORS.absent}
+                      label={t('games.woordraad.legendAbsent')}
+                    />
+                  </View>
 
-                {/* Sound settings */}
-                <GameSoundPicker moduleColor={moduleColor} />
+                  {/* Sound settings */}
+                  <GameSoundPicker moduleColor={moduleColor} />
+                </GameSettingsAccordion>
               </View>
 
               {/* Stats */}

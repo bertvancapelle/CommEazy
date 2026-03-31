@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon, ScrollViewWithIndicator } from '@/components';
-import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker } from '@/components/games';
+import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker, GameSettingsAccordion } from '@/components/games';
 import type { GameOverStat, DifficultyOption } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -264,21 +264,23 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
                   <Text style={styles.startButtonText}>{t('games.lobby.newGame')}</Text>
                 </HapticTouchable>
 
-                {/* Difficulty picker */}
-                <Text style={[styles.difficultyLabel, { color: themeColors.textPrimary }]}>
-                  {t('games.lobby.difficulty')}
-                </Text>
-                <DifficultyPicker
-                  selected={difficulty}
-                  onSelect={setDifficulty}
-                  options={DIFFICULTY_OPTIONS.map(o => ({ ...o, label: t(o.label) }))}
-                  moduleId={MODULE_ID}
-                />
+                <GameSettingsAccordion moduleColor={moduleColor}>
+                  {/* Difficulty picker */}
+                  <Text style={[styles.difficultyLabel, { color: themeColors.textPrimary }]}>
+                    {t('games.lobby.difficulty')}
+                  </Text>
+                  <DifficultyPicker
+                    selected={difficulty}
+                    onSelect={setDifficulty}
+                    options={DIFFICULTY_OPTIONS.map(o => ({ ...o, label: t(o.label) }))}
+                    moduleId={MODULE_ID}
+                  />
 
-                <View style={{ height: spacing.lg }} />
+                  <View style={{ height: spacing.lg }} />
 
-                {/* Sound settings */}
-                <GameSoundPicker moduleColor={moduleColor} />
+                  {/* Sound settings */}
+                  <GameSoundPicker moduleColor={moduleColor} />
+                </GameSettingsAccordion>
               </View>
 
               {/* Stats toggle */}

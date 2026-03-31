@@ -12,6 +12,7 @@ export { GameHeader, type GameHeaderProps, type GameHeaderAction } from './GameH
 export { DifficultyPicker, type DifficultyPickerProps, type DifficultyOption } from './DifficultyPicker';
 export { GameStatsView, type GameStatsViewProps } from './GameStatsView';
 export { GameSoundPicker } from './GameSoundPicker';
+export { GameSettingsAccordion } from './GameSettingsAccordion';
 
 // Animations
 export { CelebrationAnimation } from './CelebrationAnimation';

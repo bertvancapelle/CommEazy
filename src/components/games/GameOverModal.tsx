@@ -163,9 +163,11 @@ export function GameOverModal({
         }),
       ]).start();
 
-      // Play win sound
+      // Play win or lose sound
       if (isWon) {
         setTimeout(() => gameSoundService.playWinSound(), 200);
+      } else {
+        setTimeout(() => gameSoundService.playLoseSound(), 200);
       }
     }
   }, [visible, isWon, cardScale, cardOpacity, iconScale, backdropOpacity]);

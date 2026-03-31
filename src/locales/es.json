@@ -2994,7 +2994,18 @@
       "firework": "Fuego artificial",
       "twinkle": "Destello",
       "chime": "Campana",
-      "balloonpop": "Globo"
+      "balloonpop": "Globo",
+      "loseSound": "Sonido de derrota",
+      "buzzer": "Timbre",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Deslizar",
+      "drop": "Caer"
+    },
+    "settings": {
+      "title": "Ajustes",
+      "tapToOpen": "Toca para abrir los ajustes",
+      "tapToClose": "Toca para cerrar los ajustes"
     },
     "multiplayer": {
       "inviteSent": "Invitación enviada",

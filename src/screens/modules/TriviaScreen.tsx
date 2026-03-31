@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon, ScrollViewWithIndicator } from '@/components';
-import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker } from '@/components/games';
+import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker, GameSettingsAccordion } from '@/components/games';
 import type { GameOverStat, DifficultyOption } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -606,100 +606,102 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
                   </Text>
                 </HapticTouchable>
 
-                {/* Difficulty */}
-                <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
-                  {t('games.lobby.difficulty')}
-                </Text>
-                <DifficultyPicker
-                  selected={difficulty as GameDifficulty}
-                  onSelect={(d) => handleSetDifficulty(d as TriviaDifficulty)}
-                  options={DIFFICULTY_OPTIONS}
-                  moduleId={MODULE_ID}
-                />
+                <GameSettingsAccordion moduleColor={moduleColor}>
+                  {/* Difficulty */}
+                  <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+                    {t('games.lobby.difficulty')}
+                  </Text>
+                  <DifficultyPicker
+                    selected={difficulty as GameDifficulty}
+                    onSelect={(d) => handleSetDifficulty(d as TriviaDifficulty)}
+                    options={DIFFICULTY_OPTIONS}
+                    moduleId={MODULE_ID}
+                  />
 
-                {/* Questions per round */}
-                <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
-                  {t('games.trivia.questionsPerRound')}
-                </Text>
-                <View style={styles.chipRow}>
-                  {QUESTIONS_PER_ROUND_OPTIONS.map(count => (
-                    <HapticTouchable
-                      key={count}
-                      style={[
-                        styles.chip,
-                        {
-                          backgroundColor: questionsPerRound === count ? moduleColor : themeColors.surface,
-                          borderColor: questionsPerRound === count ? moduleColor : themeColors.border,
-                        },
-                      ]}
-                      onPress={() => handleSetQuestionsPerRound(count)}
-                    >
-                      <Text style={[
-                        styles.chipText,
-                        { color: questionsPerRound === count ? '#FFFFFF' : themeColors.textPrimary },
-                      ]}>
-                        {count}
-                      </Text>
-                    </HapticTouchable>
-                  ))}
-                </View>
+                  {/* Questions per round */}
+                  <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+                    {t('games.trivia.questionsPerRound')}
+                  </Text>
+                  <View style={styles.chipRow}>
+                    {QUESTIONS_PER_ROUND_OPTIONS.map(count => (
+                      <HapticTouchable
+                        key={count}
+                        style={[
+                          styles.chip,
+                          {
+                            backgroundColor: questionsPerRound === count ? moduleColor : themeColors.surface,
+                            borderColor: questionsPerRound === count ? moduleColor : themeColors.border,
+                          },
+                        ]}
+                        onPress={() => handleSetQuestionsPerRound(count)}
+                      >
+                        <Text style={[
+                          styles.chipText,
+                          { color: questionsPerRound === count ? '#FFFFFF' : themeColors.textPrimary },
+                        ]}>
+                          {count}
+                        </Text>
+                      </HapticTouchable>
+                    ))}
+                  </View>
 
-                {/* Timer */}
-                <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
-                  {t('games.trivia.timerSetting')}
-                </Text>
-                <View style={styles.chipRow}>
-                  {TIMER_OPTIONS.map(sec => (
-                    <HapticTouchable
-                      key={sec}
-                      style={[
-                        styles.chip,
-                        {
-                          backgroundColor: timerSeconds === sec ? moduleColor : themeColors.surface,
-                          borderColor: timerSeconds === sec ? moduleColor : themeColors.border,
-                        },
-                      ]}
-                      onPress={() => handleSetTimerSeconds(sec)}
-                    >
-                      <Text style={[
-                        styles.chipText,
-                        { color: timerSeconds === sec ? '#FFFFFF' : themeColors.textPrimary },
-                      ]}>
-                        {sec === 0 ? t('games.trivia.timerOff') : `${sec}s`}
-                      </Text>
-                    </HapticTouchable>
-                  ))}
-                </View>
+                  {/* Timer */}
+                  <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+                    {t('games.trivia.timerSetting')}
+                  </Text>
+                  <View style={styles.chipRow}>
+                    {TIMER_OPTIONS.map(sec => (
+                      <HapticTouchable
+                        key={sec}
+                        style={[
+                          styles.chip,
+                          {
+                            backgroundColor: timerSeconds === sec ? moduleColor : themeColors.surface,
+                            borderColor: timerSeconds === sec ? moduleColor : themeColors.border,
+                          },
+                        ]}
+                        onPress={() => handleSetTimerSeconds(sec)}
+                      >
+                        <Text style={[
+                          styles.chipText,
+                          { color: timerSeconds === sec ? '#FFFFFF' : themeColors.textPrimary },
+                        ]}>
+                          {sec === 0 ? t('games.trivia.timerOff') : `${sec}s`}
+                        </Text>
+                      </HapticTouchable>
+                    ))}
+                  </View>
 
-                {/* Feedback timer */}
-                <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
-                  {t('games.trivia.feedbackTimer')}
-                </Text>
-                <View style={styles.chipRow}>
-                  {FEEDBACK_TIMER_OPTIONS.map(sec => (
-                    <HapticTouchable
-                      key={sec}
-                      style={[
-                        styles.chip,
-                        {
-                          backgroundColor: feedbackSeconds === sec ? moduleColor : themeColors.surface,
-                          borderColor: feedbackSeconds === sec ? moduleColor : themeColors.border,
-                        },
-                      ]}
-                      onPress={() => handleSetFeedbackSeconds(sec)}
-                    >
-                      <Text style={[
-                        styles.chipText,
-                        { color: feedbackSeconds === sec ? '#FFFFFF' : themeColors.textPrimary },
-                      ]}>
-                        {`${sec}s`}
-                      </Text>
-                    </HapticTouchable>
-                  ))}
-                </View>
+                  {/* Feedback timer */}
+                  <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+                    {t('games.trivia.feedbackTimer')}
+                  </Text>
+                  <View style={styles.chipRow}>
+                    {FEEDBACK_TIMER_OPTIONS.map(sec => (
+                      <HapticTouchable
+                        key={sec}
+                        style={[
+                          styles.chip,
+                          {
+                            backgroundColor: feedbackSeconds === sec ? moduleColor : themeColors.surface,
+                            borderColor: feedbackSeconds === sec ? moduleColor : themeColors.border,
+                          },
+                        ]}
+                        onPress={() => handleSetFeedbackSeconds(sec)}
+                      >
+                        <Text style={[
+                          styles.chipText,
+                          { color: feedbackSeconds === sec ? '#FFFFFF' : themeColors.textPrimary },
+                        ]}>
+                          {`${sec}s`}
+                        </Text>
+                      </HapticTouchable>
+                    ))}
+                  </View>
 
-                {/* Sound settings */}
-                <GameSoundPicker moduleColor={moduleColor} />
+                  {/* Sound settings */}
+                  <GameSoundPicker moduleColor={moduleColor} />
+                </GameSettingsAccordion>
               </View>
 
               {/* Stats toggle */}

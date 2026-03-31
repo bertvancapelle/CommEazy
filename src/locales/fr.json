@@ -2995,7 +2995,18 @@
       "firework": "Feu d'artifice",
       "twinkle": "Scintillement",
       "chime": "Carillon",
-      "balloonpop": "Ballon"
+      "balloonpop": "Ballon",
+      "loseSound": "Son de défaite",
+      "buzzer": "Buzzer",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Glisser",
+      "drop": "Chute"
+    },
+    "settings": {
+      "title": "Paramètres",
+      "tapToOpen": "Appuyez pour ouvrir les paramètres",
+      "tapToClose": "Appuyez pour fermer les paramètres"
     },
     "multiplayer": {
       "inviteSent": "Invitation envoyée",

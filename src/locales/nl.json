@@ -2998,7 +2998,18 @@
       "firework": "Vuurwerk",
       "twinkle": "Twinkle",
       "chime": "Bel",
-      "balloonpop": "Ballon"
+      "balloonpop": "Ballon",
+      "loseSound": "Verliesgeluid",
+      "buzzer": "Zoemer",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Glijden",
+      "drop": "Vallen"
+    },
+    "settings": {
+      "title": "Instellingen",
+      "tapToOpen": "Tik om instellingen te openen",
+      "tapToClose": "Tik om instellingen te sluiten"
     },
     "multiplayer": {
       "inviteSent": "Uitnodiging verstuurd",

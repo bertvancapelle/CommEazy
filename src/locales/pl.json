@@ -2853,7 +2853,18 @@
       "firework": "Fajerwerk",
       "twinkle": "Błysk",
       "chime": "Dzwonek",
-      "balloonpop": "Balon"
+      "balloonpop": "Balon",
+      "loseSound": "Dźwięk przegranej",
+      "buzzer": "Brzęczyk",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Ślizg",
+      "drop": "Upadek"
+    },
+    "settings": {
+      "title": "Ustawienia",
+      "tapToOpen": "Dotknij, aby otworzyć ustawienia",
+      "tapToClose": "Dotknij, aby zamknąć ustawienia"
     },
     "multiplayer": {
       "inviteSent": "Zaproszenie wysłane",

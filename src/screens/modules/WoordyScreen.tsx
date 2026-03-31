@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon, ScrollViewWithIndicator } from '@/components';
-import { GameHeader, GameOverModal, GameSoundPicker } from '@/components/games';
+import { GameHeader, GameOverModal, GameSoundPicker, GameSettingsAccordion } from '@/components/games';
 import type { GameOverStat } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -289,8 +289,10 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
         </Text>
       </HapticTouchable>
 
-      {/* Sound settings */}
-      <GameSoundPicker moduleColor={moduleColor} />
+      <GameSettingsAccordion moduleColor={moduleColor}>
+        {/* Sound settings */}
+        <GameSoundPicker moduleColor={moduleColor} />
+      </GameSettingsAccordion>
     </ScrollViewWithIndicator>
   );
 

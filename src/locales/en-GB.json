@@ -2998,7 +2998,18 @@
       "firework": "Firework",
       "twinkle": "Twinkle",
       "chime": "Chime",
-      "balloonpop": "Balloon"
+      "balloonpop": "Balloon",
+      "loseSound": "Lose sound",
+      "buzzer": "Buzzer",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Slide",
+      "drop": "Drop"
+    },
+    "settings": {
+      "title": "Settings",
+      "tapToOpen": "Tap to open settings",
+      "tapToClose": "Tap to close settings"
     },
     "multiplayer": {
       "inviteSent": "Invitation sent",

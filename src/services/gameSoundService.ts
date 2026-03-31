@@ -7,6 +7,7 @@
  * Sound categories:
  * - Tap sounds: Short feedback on each interaction (button press, card tap, etc.)
  * - Win sounds: Celebration sound on game win
+ * - Lose sounds: Sound on game loss
  *
  * @see ios/CommEazyTemp/AudioServices.m
  */
@@ -22,10 +23,12 @@ const { AudioServices } = NativeModules;
 
 export type TapSoundId = 'off' | 'click' | 'pop' | 'tick' | 'ping' | 'swoosh';
 export type WinSoundId = 'off' | 'horn' | 'firework' | 'twinkle' | 'chime' | 'balloonpop';
+export type LoseSoundId = 'off' | 'buzzer' | 'womp' | 'bonk' | 'slide' | 'drop';
 
 export interface GameSoundSettings {
   tapSound: TapSoundId;
   winSound: WinSoundId;
+  loseSound: LoseSoundId;
 }
 
 export interface SoundOption<T extends string> {
@@ -40,6 +43,7 @@ export interface SoundOption<T extends string> {
 
 const STORAGE_KEY_TAP = '@commeazy/games_tapSound';
 const STORAGE_KEY_WIN = '@commeazy/games_winSound';
+const STORAGE_KEY_LOSE = '@commeazy/games_loseSound';
 
 /**
  * iOS System Sound IDs for tap feedback
@@ -67,9 +71,23 @@ export const WIN_SOUND_OPTIONS: SoundOption<WinSoundId>[] = [
   { id: 'balloonpop', labelKey: 'games.sounds.balloonpop', soundId: 1052 }, // Payment Success
 ];
 
+/**
+ * iOS System Sound IDs for loss notification
+ * Softer/shorter sounds that indicate failure without being harsh
+ */
+export const LOSE_SOUND_OPTIONS: SoundOption<LoseSoundId>[] = [
+  { id: 'off',    labelKey: 'games.sounds.off',    soundId: 0 },
+  { id: 'buzzer', labelKey: 'games.sounds.buzzer', soundId: 1073 }, // Failure (short buzz)
+  { id: 'womp',   labelKey: 'games.sounds.womp',   soundId: 1006 }, // Descent (descending tone)
+  { id: 'bonk',   labelKey: 'games.sounds.bonk',   soundId: 1073 }, // Failure variant
+  { id: 'slide',  labelKey: 'games.sounds.slide',  soundId: 1070 }, // Slide down
+  { id: 'drop',   labelKey: 'games.sounds.drop',   soundId: 1071 }, // Drop tone
+];
+
 export const DEFAULT_SETTINGS: GameSoundSettings = {
   tapSound: 'click',
   winSound: 'horn',
+  loseSound: 'buzzer',
 };
 
 // ============================================================
@@ -87,13 +105,15 @@ class GameSoundService {
     if (this.loaded) return { ...this.settings };
 
     try {
-      const [tapVal, winVal] = await Promise.all([
+      const [tapVal, winVal, loseVal] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEY_TAP),
         AsyncStorage.getItem(STORAGE_KEY_WIN),
+        AsyncStorage.getItem(STORAGE_KEY_LOSE),
       ]);
 
       if (tapVal !== null) this.settings.tapSound = tapVal as TapSoundId;
       if (winVal !== null) this.settings.winSound = winVal as WinSoundId;
+      if (loseVal !== null) this.settings.loseSound = loseVal as LoseSoundId;
       this.loaded = true;
     } catch {
       // Silently use defaults
@@ -126,6 +146,14 @@ class GameSoundService {
   }
 
   /**
+   * Set lose sound and persist
+   */
+  async setLoseSound(id: LoseSoundId): Promise<void> {
+    this.settings.loseSound = id;
+    await AsyncStorage.setItem(STORAGE_KEY_LOSE, id);
+  }
+
+  /**
    * Play the configured tap sound (short, immediate feedback)
    */
   playTapSound(): void {
@@ -145,6 +173,15 @@ class GameSoundService {
   }
 
   /**
+   * Play the configured lose sound
+   */
+  playLoseSound(): void {
+    const option = LOSE_SOUND_OPTIONS.find(o => o.id === this.settings.loseSound);
+    if (!option || option.soundId === 0) return;
+    this.playAlertSound(option.soundId);
+  }
+
+  /**
    * Preview a specific sound (for settings picker)
    */
   previewTapSound(id: TapSoundId): void {
@@ -158,6 +195,15 @@ class GameSoundService {
    */
   previewWinSound(id: WinSoundId): void {
     const option = WIN_SOUND_OPTIONS.find(o => o.id === id);
+    if (!option || option.soundId === 0) return;
+    this.playAlertSound(option.soundId);
+  }
+
+  /**
+   * Preview a specific lose sound (for settings picker)
+   */
+  previewLoseSound(id: LoseSoundId): void {
+    const option = LOSE_SOUND_OPTIONS.find(o => o.id === id);
     if (!option || option.soundId === 0) return;
     this.playAlertSound(option.soundId);
   }

@@ -2936,7 +2936,18 @@
       "firework": "Fuoco d'artificio",
       "twinkle": "Scintillio",
       "chime": "Campanello",
-      "balloonpop": "Palloncino"
+      "balloonpop": "Palloncino",
+      "loseSound": "Suono di sconfitta",
+      "buzzer": "Cicalino",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Scivolare",
+      "drop": "Cadere"
+    },
+    "settings": {
+      "title": "Impostazioni",
+      "tapToOpen": "Tocca per aprire le impostazioni",
+      "tapToClose": "Tocca per chiudere le impostazioni"
     },
     "multiplayer": {
       "inviteSent": "Invito inviato",

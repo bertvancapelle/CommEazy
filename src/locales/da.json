@@ -2829,7 +2829,18 @@
       "firework": "Fyrværkeri",
       "twinkle": "Glimt",
       "chime": "Klokke",
-      "balloonpop": "Ballon"
+      "balloonpop": "Ballon",
+      "loseSound": "Tablyd",
+      "buzzer": "Summer",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Glid",
+      "drop": "Fald"
+    },
+    "settings": {
+      "title": "Indstillinger",
+      "tapToOpen": "Tryk for at åbne indstillinger",
+      "tapToClose": "Tryk for at lukke indstillinger"
     },
     "multiplayer": {
       "inviteSent": "Invitation sendt",

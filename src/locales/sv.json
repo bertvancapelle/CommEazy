@@ -2829,7 +2829,18 @@
       "firework": "Fyrverkeri",
       "twinkle": "Glitter",
       "chime": "Klocka",
-      "balloonpop": "Ballong"
+      "balloonpop": "Ballong",
+      "loseSound": "Förlustljud",
+      "buzzer": "Summer",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Glid",
+      "drop": "Fall"
+    },
+    "settings": {
+      "title": "Inställningar",
+      "tapToOpen": "Tryck för att öppna inställningar",
+      "tapToClose": "Tryck för att stänga inställningar"
     },
     "multiplayer": {
       "inviteSent": "Inbjudan skickad",

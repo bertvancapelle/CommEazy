@@ -2994,7 +2994,18 @@
       "firework": "Feuerwerk",
       "twinkle": "Funkeln",
       "chime": "Glocke",
-      "balloonpop": "Ballon"
+      "balloonpop": "Ballon",
+      "loseSound": "Verlustgeräusch",
+      "buzzer": "Summer",
+      "womp": "Womp",
+      "bonk": "Bonk",
+      "slide": "Gleiten",
+      "drop": "Fallen"
+    },
+    "settings": {
+      "title": "Einstellungen",
+      "tapToOpen": "Tippen, um Einstellungen zu öffnen",
+      "tapToClose": "Tippen, um Einstellungen zu schließen"
     },
     "multiplayer": {
       "inviteSent": "Einladung gesendet",

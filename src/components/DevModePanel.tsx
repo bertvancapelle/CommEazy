@@ -7,7 +7,7 @@
  * Only renders in __DEV__ mode. Production builds exclude this component.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,9 @@ import {
   ScrollView,
   AccessibilityRole,
   Alert,
+  Animated,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import { PanelAwareModal } from './PanelAwareModal';
 import { HapticTouchable } from './HapticTouchable';
@@ -142,20 +145,91 @@ interface DevModePanelProps {
 // The module.exports override was removed because it conflicts with ESM exports in Hermes
 
 /**
- * Floating button to open dev panel
+ * Floating draggable button to open dev panel.
+ * Drag to reposition, tap to open. Snaps to nearest screen edge on release.
  */
+const BUTTON_SIZE = 60;
+const EDGE_MARGIN = 16;
+
 export function DevModeButton({ onPress }: { onPress: () => void }) {
   if (!__DEV__ || !isDevUIEnabled()) return null;
 
+  const { width: screenW, height: screenH } = Dimensions.get('window');
+
+  // Start position: bottom-right
+  const pan = useRef(new Animated.ValueXY({
+    x: screenW - BUTTON_SIZE - EDGE_MARGIN,
+    y: screenH - BUTTON_SIZE - 100,
+  })).current;
+
+  // Track whether the gesture is a drag or a tap
+  const isDragging = useRef(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5,
+      onPanResponderGrant: () => {
+        isDragging.current = false;
+        // Flatten current offset into the value so dragging starts from current position
+        pan.setOffset({
+          x: (pan.x as unknown as { _value: number })._value,
+          y: (pan.y as unknown as { _value: number })._value,
+        });
+        pan.setValue({ x: 0, y: 0 });
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5) {
+          isDragging.current = true;
+        }
+        Animated.event([null, { dx: pan.x, dy: pan.y }], {
+          useNativeDriver: false,
+        })(_, gestureState);
+      },
+      onPanResponderRelease: () => {
+        pan.flattenOffset();
+
+        if (!isDragging.current) {
+          // It was a tap, not a drag
+          onPress();
+          return;
+        }
+
+        // Snap to nearest horizontal edge
+        const currentX = (pan.x as unknown as { _value: number })._value;
+        const currentY = (pan.y as unknown as { _value: number })._value;
+        const snapX = currentX < screenW / 2 ? EDGE_MARGIN : screenW - BUTTON_SIZE - EDGE_MARGIN;
+        // Clamp Y within safe bounds
+        const clampedY = Math.max(60, Math.min(currentY, screenH - BUTTON_SIZE - 40));
+
+        Animated.spring(pan, {
+          toValue: { x: snapX, y: clampedY },
+          friction: 7,
+          tension: 40,
+          useNativeDriver: false,
+        }).start();
+      },
+    })
+  ).current;
+
   return (
-    <HapticTouchable hapticDisabled
-      style={styles.floatingButton}
-      onPress={onPress}
+    <Animated.View
+      {...panResponder.panHandlers}
+      style={[
+        styles.floatingButton,
+        {
+          transform: [
+            { translateX: pan.x },
+            { translateY: pan.y },
+          ],
+        },
+      ]}
       accessibilityRole={'button' as AccessibilityRole}
       accessibilityLabel="Open developer tools"
     >
       <Text style={styles.floatingButtonText}>DEV</Text>
-    </HapticTouchable>
+    </Animated.View>
   );
 }
 
@@ -399,11 +473,11 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
 const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
-    bottom: 100,
-    right: 16,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    top: 0,
+    left: 0,
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
+    borderRadius: BUTTON_SIZE / 2,
     backgroundColor: '#FF6B00',
     justifyContent: 'center',
     alignItems: 'center',
