@@ -95,9 +95,9 @@ export class GameSessionModel extends Model {
     });
   }
 
-  /** Mark game as completed */
-  @writer async complete(finalScore: number, totalDuration: number): Promise<void> {
-    await this.update(record => {
+  /** Prepare session as completed (use inside db.write()) */
+  prepareComplete(finalScore: number, totalDuration: number): this {
+    return this.prepareUpdate(record => {
       record.status = 'completed';
       record.score = finalScore;
       record.durationSeconds = totalDuration;
@@ -105,9 +105,9 @@ export class GameSessionModel extends Model {
     });
   }
 
-  /** Mark game as abandoned */
-  @writer async abandon(): Promise<void> {
-    await this.update(record => {
+  /** Prepare session as abandoned (use inside db.write()) */
+  prepareAbandon(): this {
+    return this.prepareUpdate(record => {
       record.status = 'abandoned';
       record.completedAt = Date.now();
     });

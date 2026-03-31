@@ -243,12 +243,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const statCollection = db.get<GameStatModel>('game_stats');
 
       const session = await sessionCollection.find(sessionId);
-      await session.complete(finalScore, totalDuration);
-
-      // Update statistics
       const gameType = session.gameType;
 
+      // All updates in a single db.write() to avoid concurrent write conflicts
       await db.write(async () => {
+        // Mark session as completed
+        session.prepareComplete(finalScore, totalDuration);
+
         // Helper to get or create a stat record
         const getOrCreateStat = async (
           key: GameStatKey,
@@ -352,7 +353,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const collection = db.get<GameSessionModel>('game_sessions');
 
       const session = await collection.find(sessionId);
-      await session.abandon();
+      await db.write(async () => {
+        session.prepareAbandon();
+      });
 
       await loadData();
     },
