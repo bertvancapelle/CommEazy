@@ -5,21 +5,22 @@
 
 ## Laatste Update
 
-- **Datum:** 2026-03-30
-- **Sessie:** Games Session 11 — Solitaire card visual redesign
-- **Commit:** `d4e174e` feat: redesign Solitaire cards — traditional playing card visuals
+- **Datum:** 2026-03-31
+- **Sessie:** Games Session 12 — Solitaire PNG card images
+- **Commit:** `887dba2` feat: replace inline SVG cards with PNG images (notpeter/Vector-Playing-Cards)
 
 ## Voltooide Taken Deze Sessie
 
-1. **Solitaire kaart visuele redesign (`src/screens/modules/SolitaireScreen.tsx`):**
-   - **Card sizing gemaximaliseerd:** CARD_GAP 4→2pt, TABLEAU_PADDING 8→4pt → ~54×75pt op iPhone 14 (was 47×65pt)
-   - **Dual-corner design:** Rank+suit in top-left EN bottom-right (180° geroteerd), zoals echte speelkaarten
-   - **SVG face card artwork:** Jack (hoed+tuniek), Queen (kroon+jurk+ketting), King (kroon+mantel+baard) via inline react-native-svg
-   - **Ace:** Groot gecentreerd suit symbool
-   - **Number cards (2-10):** Standaard pip layout met gepositioneerde suit symbolen (PIP_LAYOUTS lookup table)
-   - **Card back redesign:** SVG diamant patroon met center ornament, vervangt emoji 🂠
-   - **Nieuwe styles:** cornerTL, cornerBR, cornerRank, cornerSuit, cardCenter, aceSuit, pipContainer, pip, cardBackInner
-   - **Verwijderde styles:** cardRank, cardSuit, cardBackText (vervangen door corner-based layout)
+1. **Solitaire kaarten vervangen door PNG afbeeldingen:**
+   - **Bron:** notpeter/Vector-Playing-Cards (Public Domain / WTFPL licentie)
+   - **52 PNG bestanden** in `src/assets/cards/` (225×315px, @3x resolutie)
+   - **Lookup map:** `src/assets/cards/index.ts` — `getCardImage(suit, rank)` met static `require()` calls
+   - **CardView vereenvoudigd:** Gebruikt nu `<Image>` component i.p.v. inline SVG rendering
+   - **Verwijderd:** `FaceCardArt`, `PipLayout`, `SuitEmblem`, `PIP_LAYOUTS`, `isRedSuit`
+   - **Verwijderd:** `CORNER_RANK_SIZE`, `CORNER_SUIT_SIZE`, `CENTER_PIP_SIZE` constanten
+   - **Verwijderd:** 8 ongebruikte styles (cornerTL/BR, cornerRank/Suit, cardCenter, aceSuit, pipContainer, pip)
+   - **Behouden:** CardBackView (SVG diamantpatroon), hint border, selectie border
+   - **Bundle impact:** ~1.5MB extra (face cards ~70-84KB, number cards ~8-24KB)
 
 ## Openstaande Taken
 
@@ -54,18 +55,18 @@
 
 | Beslissing | Rationale |
 |------------|-----------|
-| CARD_GAP 4→2, TABLEAU_PADDING 8→4 | Maximaliseert kaartgrootte zonder scrolling; 7 kolommen moeten op scherm passen |
-| Inline SVG i.p.v. PNG/externe assets | Consistent met Icon.tsx pattern, zero nieuwe bestanden, geen bundle pipeline changes |
-| Dual-corner rank+suit (TL + BR rotated) | Standaard playing card design — herkenbaar voor senioren |
-| PipLayout met percentage-based positioning | Schaalt automatisch mee met kaartgrootte op verschillende devices |
-| Geen horizontaal scrollen | Gebruiker keuze — alle 7 kolommen moeten zichtbaar zijn zonder scroll |
+| notpeter/Vector-Playing-Cards als bron | Public Domain/WTFPL — geen licentie-verplichtingen, hoge kwaliteit traditioneel kaartontwerp |
+| Volledige kaart-PNG i.p.v. alleen center art | Kaarten bevatten professionele indices + artwork — beter leesbaar dan custom text corners bij ~54pt breedte |
+| SVG → PNG conversie (225×315px) | Runtime SVG rendering van 400-622KB face cards is te zwaar; PNG's renderen instant |
+| CardBackView SVG behouden | Diamantpatroon is simpel genoeg voor runtime SVG, hoeft niet als PNG |
 
 ## Context voor Volgende Sessie
 
-- **Solitaire card components:** CardView (dual-corner), CardBackView (SVG diamonds), PipLayout (2-10), FaceCardArt (J/Q/K SVG), SuitEmblem (suit shapes)
+- **Card image assets:** `src/assets/cards/*.png` (52 bestanden) + `src/assets/cards/index.ts` (lookup map)
+- **CardView:** Simpel — `<Image source={getCardImage(suit, rank)}>` met hint/selectie border
+- **CardBackView:** Ongewijzigd — SVG diamantpatroon met module kleur
 - **Card sizing constants:** CARD_GAP=2, TABLEAU_PADDING=4, CARD_WIDTH berekend, CARD_HEIGHT=1.4×width
-- **Corner text sizing:** CORNER_RANK_SIZE=28% card width, CORNER_SUIT_SIZE=22%, CENTER_PIP_SIZE=28%
-- **LiquidGlassModule.swift:** Debounce pattern via `propUpdateTimer` (50ms) — alle prop `didSet` handlers gebruiken `scheduleDebouncedUpdate()`
+- **LiquidGlassModule.swift:** Debounce pattern via `propUpdateTimer` (50ms)
 - **Game screen ModuleHeader pattern:** `showGridButton={false}` + `rightAccessory={renderGamepadButton(onBack)}`
 - **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
 - **Engines locatie:** `src/engines/{woordraad,sudoku,solitaire,memory,trivia,woordy}/`
