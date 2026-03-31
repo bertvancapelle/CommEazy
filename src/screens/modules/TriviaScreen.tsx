@@ -19,7 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
-import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
+import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon, ScrollViewWithIndicator } from '@/components';
 import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker } from '@/components/games';
 import type { GameOverStat, DifficultyOption } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
@@ -586,7 +586,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
           }
           controlsBlock={<></>}
           contentBlock={
-            <View style={styles.menuContent}>
+            <ScrollViewWithIndicator style={{ flex: 1 }} contentContainerStyle={styles.menuContent}>
               <View style={[styles.menuCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
                 <Text style={[styles.menuTitle, { color: themeColors.textPrimary }]}>
                   {t('games.trivia.title')}
@@ -594,6 +594,17 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
                 <Text style={[styles.menuDescription, { color: themeColors.textSecondary }]}>
                   {t('games.trivia.howToPlay')}
                 </Text>
+
+                {/* Start button — top for quick access */}
+                <HapticTouchable
+                  style={[styles.startButton, { backgroundColor: moduleColor }]}
+                  onPress={handleShowCategories}
+                >
+                  <Icon name="play" size={24} color="#FFFFFF" />
+                  <Text style={styles.startButtonText}>
+                    {t('games.trivia.chooseCategory')}
+                  </Text>
+                </HapticTouchable>
 
                 {/* Difficulty */}
                 <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
@@ -689,17 +700,6 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
 
                 {/* Sound settings */}
                 <GameSoundPicker moduleColor={moduleColor} />
-
-                {/* Start button */}
-                <HapticTouchable
-                  style={[styles.startButton, { backgroundColor: moduleColor }]}
-                  onPress={handleShowCategories}
-                >
-                  <Icon name="play" size={24} color="#FFFFFF" />
-                  <Text style={styles.startButtonText}>
-                    {t('games.trivia.chooseCategory')}
-                  </Text>
-                </HapticTouchable>
               </View>
 
               {/* Stats toggle */}
@@ -713,7 +713,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               </HapticTouchable>
 
               {showStats && <GameStatsView gameType="trivia" moduleId={MODULE_ID} />}
-            </View>
+            </ScrollViewWithIndicator>
           }
         />
       </View>

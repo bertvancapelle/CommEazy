@@ -17,7 +17,7 @@ import { View, Text, StyleSheet, Dimensions, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
-import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
+import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon, ScrollViewWithIndicator } from '@/components';
 import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker } from '@/components/games';
 import type { GameOverStat, DifficultyOption } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
@@ -239,7 +239,7 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
           }
           controlsBlock={<></>}
           contentBlock={
-            <View style={styles.menuContent}>
+            <ScrollViewWithIndicator style={{ flex: 1 }} contentContainerStyle={styles.menuContent}>
               <View style={[styles.menuCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
                 <Text style={[styles.menuTitle, { color: themeColors.textPrimary }]}>
                   {t('games.memory.title')}
@@ -247,6 +247,18 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
                 <Text style={[styles.menuDescription, { color: themeColors.textSecondary }]}>
                   {t('games.memory.howToPlay')}
                 </Text>
+
+                {/* Start button — top for quick access */}
+                <HapticTouchable
+                  onPress={handleStartGame}
+                  hapticType="success"
+                  style={[styles.startButton, { backgroundColor: moduleColor }]}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('games.lobby.newGame')}
+                >
+                  <Icon name="play" size={24} color="#FFFFFF" />
+                  <Text style={styles.startButtonText}>{t('games.lobby.newGame')}</Text>
+                </HapticTouchable>
 
                 {/* Difficulty picker */}
                 <Text style={[styles.difficultyLabel, { color: themeColors.textPrimary }]}>
@@ -263,17 +275,6 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
 
                 {/* Sound settings */}
                 <GameSoundPicker moduleColor={moduleColor} />
-
-                <HapticTouchable
-                  onPress={handleStartGame}
-                  hapticType="success"
-                  style={[styles.startButton, { backgroundColor: moduleColor }]}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('games.lobby.newGame')}
-                >
-                  <Icon name="play" size={24} color="#FFFFFF" />
-                  <Text style={styles.startButtonText}>{t('games.lobby.newGame')}</Text>
-                </HapticTouchable>
               </View>
 
               {/* Stats toggle */}
@@ -290,7 +291,7 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
               </HapticTouchable>
 
               {showStats && <GameStatsView gameType="memory" moduleId={MODULE_ID} />}
-            </View>
+            </ScrollViewWithIndicator>
           }
         />
       </View>

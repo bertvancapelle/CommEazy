@@ -19,7 +19,7 @@ import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
-import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
+import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon, ScrollViewWithIndicator } from '@/components';
 import { GameHeader, GameOverModal, GameSoundPicker } from '@/components/games';
 import type { GameOverStat } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
@@ -271,7 +271,7 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
   // ============================================================
 
   const renderMenu = () => (
-    <View style={[styles.menuContainer, { backgroundColor: themeColors.background }]}>
+    <ScrollViewWithIndicator style={{ flex: 1 }} contentContainerStyle={[styles.menuContainer, { backgroundColor: themeColors.background }]}>
       <Text style={[styles.menuTitle, { color: themeColors.textPrimary }]}>
         {t('games.woordy.title')}
       </Text>
@@ -279,9 +279,7 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
         {t('games.woordy.howToPlay')}
       </Text>
 
-      {/* Sound settings */}
-      <GameSoundPicker moduleColor={moduleColor} />
-
+      {/* Start button — top for quick access */}
       <HapticTouchable
         style={[styles.startButton, { backgroundColor: moduleColor }]}
         onPress={handleStartGame}
@@ -290,7 +288,10 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
           {t('games.common.play')}
         </Text>
       </HapticTouchable>
-    </View>
+
+      {/* Sound settings */}
+      <GameSoundPicker moduleColor={moduleColor} />
+    </ScrollViewWithIndicator>
   );
 
   // ============================================================
