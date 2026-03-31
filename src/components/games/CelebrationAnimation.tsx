@@ -1,12 +1,14 @@
 /**
- * CelebrationAnimation — Random particle animation for game wins
+ * CelebrationAnimation — Particle animation for game results
  *
- * Renders one of 5 celebration styles randomly:
+ * Win: renders one of 5 celebration styles randomly:
  * 1. Confetti — colorful falling rectangles
  * 2. Fireworks — expanding star bursts
  * 3. Stars — twinkling stars floating up
  * 4. Hearts — floating hearts
  * 5. Balloons — rising balloons
+ *
+ * Loss: renders slowly falling snowflakes in muted grey tones.
  *
  * Respects AccessibilityInfo.isReduceMotionEnabled — renders nothing when active.
  *
@@ -15,13 +17,13 @@
 
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { View, StyleSheet, Animated, AccessibilityInfo, Dimensions } from 'react-native';
-import Svg, { Path, Rect, Circle } from 'react-native-svg';
+import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
 
 // ============================================================
 // Types
 // ============================================================
 
-type CelebrationType = 'confetti' | 'fireworks' | 'stars' | 'hearts' | 'balloons';
+type CelebrationType = 'confetti' | 'fireworks' | 'stars' | 'hearts' | 'balloons' | 'snowfall';
 
 interface Particle {
   id: number;
@@ -38,6 +40,8 @@ interface CelebrationAnimationProps {
   moduleColor: string;
   /** Whether animation is active */
   active: boolean;
+  /** Whether the player won (true = celebration, false = snowfall) */
+  isWon?: boolean;
 }
 
 // ============================================================
@@ -45,7 +49,8 @@ interface CelebrationAnimationProps {
 // ============================================================
 
 const PARTICLE_COUNT = 24;
-const ANIMATION_DURATION = 2500;
+const WIN_ANIMATION_DURATION = 2500;
+const LOSS_ANIMATION_DURATION = 3500; // Slower for snowfall
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const CELEBRATION_COLORS = [
@@ -61,7 +66,20 @@ const CELEBRATION_COLORS = [
   '#82B1FF', // Light blue
 ];
 
-const CELEBRATION_TYPES: CelebrationType[] = [
+const LOSS_COLORS = [
+  '#B0BEC5', // Blue grey 200
+  '#CFD8DC', // Blue grey 100
+  '#90A4AE', // Blue grey 300
+  '#ECEFF1', // Blue grey 50
+  '#B0BEC5', // Blue grey 200
+  '#78909C', // Blue grey 400
+  '#CFD8DC', // Blue grey 100
+  '#ECEFF1', // Blue grey 50
+  '#B0BEC5', // Blue grey 200
+  '#90A4AE', // Blue grey 300
+];
+
+const WIN_TYPES: CelebrationType[] = [
   'confetti', 'fireworks', 'stars', 'hearts', 'balloons',
 ];
 
@@ -69,8 +87,8 @@ const CELEBRATION_TYPES: CelebrationType[] = [
 // Particle Generators
 // ============================================================
 
-function generateParticles(type: CelebrationType, moduleColor: string): Particle[] {
-  const colors = [...CELEBRATION_COLORS, moduleColor];
+function generateParticles(type: CelebrationType, moduleColor: string, isWon: boolean): Particle[] {
+  const colors = isWon ? [...CELEBRATION_COLORS, moduleColor] : LOSS_COLORS;
 
   return Array.from({ length: PARTICLE_COUNT }, (_, i) => {
     const baseParticle = {
@@ -116,6 +134,14 @@ function generateParticles(type: CelebrationType, moduleColor: string): Particle
           y: 1.0 + Math.random() * 0.2, // Start below screen
           size: 18 + Math.random() * 12,
         };
+      case 'snowfall':
+        return {
+          ...baseParticle,
+          x: Math.random(),
+          y: -0.05 - Math.random() * 0.3, // Start above screen
+          size: 10 + Math.random() * 14,
+          delay: Math.random() * 1200, // More staggered
+        };
     }
   });
 }
@@ -127,11 +153,11 @@ function generateParticles(type: CelebrationType, moduleColor: string): Particle
 const AnimatedParticle = React.memo(function AnimatedParticle({
   particle,
   type,
-  progress,
+  animationDuration,
 }: {
   particle: Particle;
   type: CelebrationType;
-  progress: Animated.Value;
+  animationDuration: number;
 }) {
   const particleProgress = useRef(new Animated.Value(0)).current;
 
@@ -139,13 +165,13 @@ const AnimatedParticle = React.memo(function AnimatedParticle({
     const timeout = setTimeout(() => {
       Animated.timing(particleProgress, {
         toValue: 1,
-        duration: ANIMATION_DURATION - particle.delay,
+        duration: animationDuration - particle.delay,
         useNativeDriver: true,
       }).start();
     }, particle.delay);
 
     return () => clearTimeout(timeout);
-  }, [particleProgress, particle.delay]);
+  }, [particleProgress, particle.delay, animationDuration]);
 
   const startX = particle.x * SCREEN_WIDTH;
   const startY = particle.y * SCREEN_HEIGHT;
@@ -162,7 +188,7 @@ const AnimatedParticle = React.memo(function AnimatedParticle({
             Animated.multiply(particleProgress, drift),
           ),
           translateY: Animated.add(
-            startY * SCREEN_HEIGHT,
+            startY,
             Animated.multiply(particleProgress, endY),
           ),
           rotate: particleProgress.interpolate({
@@ -245,6 +271,32 @@ const AnimatedParticle = React.memo(function AnimatedParticle({
           }),
         };
       }
+      case 'snowfall': {
+        // Gentle side-to-side drift like real snowflakes
+        const drift = (Math.random() - 0.5) * 60;
+        return {
+          translateX: Animated.add(
+            startX,
+            Animated.multiply(particleProgress, drift),
+          ),
+          translateY: Animated.add(
+            startY,
+            Animated.multiply(particleProgress, SCREEN_HEIGHT * 1.2),
+          ),
+          rotate: particleProgress.interpolate({
+            inputRange: [0, 0.25, 0.5, 0.75, 1],
+            outputRange: ['0deg', '15deg', '0deg', '-15deg', '0deg'],
+          }),
+          opacity: particleProgress.interpolate({
+            inputRange: [0, 0.05, 0.6, 1],
+            outputRange: [0, 0.7, 0.5, 0],
+          }),
+          scale: particleProgress.interpolate({
+            inputRange: [0, 0.5, 1],
+            outputRange: [0.8, 1, 0.6],
+          }),
+        };
+      }
     }
   };
 
@@ -318,6 +370,22 @@ function ParticleShape({ type, size, color }: { type: CelebrationType; size: num
           <Path d="M10 24L10 28" stroke={color} strokeWidth="0.5" opacity={0.5} />
         </Svg>
       );
+    case 'snowfall':
+      // Six-armed snowflake
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+          {/* 6 arms at 60° intervals */}
+          <Line x1="12" y1="2" x2="12" y2="22" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+          <Line x1="3.34" y1="7" x2="20.66" y2="17" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+          <Line x1="3.34" y1="17" x2="20.66" y2="7" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+          {/* Small branches */}
+          <Line x1="12" y1="5" x2="9.5" y2="7" stroke={color} strokeWidth="1" strokeLinecap="round" />
+          <Line x1="12" y1="5" x2="14.5" y2="7" stroke={color} strokeWidth="1" strokeLinecap="round" />
+          <Line x1="12" y1="19" x2="9.5" y2="17" stroke={color} strokeWidth="1" strokeLinecap="round" />
+          <Line x1="12" y1="19" x2="14.5" y2="17" stroke={color} strokeWidth="1" strokeLinecap="round" />
+          <Circle cx="12" cy="12" r="1.5" fill={color} />
+        </Svg>
+      );
   }
 }
 
@@ -325,20 +393,23 @@ function ParticleShape({ type, size, color }: { type: CelebrationType; size: num
 // Main Component
 // ============================================================
 
-export function CelebrationAnimation({ moduleColor, active }: CelebrationAnimationProps) {
+export function CelebrationAnimation({ moduleColor, active, isWon = true }: CelebrationAnimationProps) {
   const [reduceMotion, setReduceMotion] = useState(false);
   const progress = useRef(new Animated.Value(0)).current;
 
+  const animationDuration = isWon ? WIN_ANIMATION_DURATION : LOSS_ANIMATION_DURATION;
+
   // Pick random celebration type once when active becomes true
-  const celebrationType = useMemo(() => {
+  const celebrationType = useMemo((): CelebrationType => {
     if (!active) return 'confetti';
-    return CELEBRATION_TYPES[Math.floor(Math.random() * CELEBRATION_TYPES.length)];
+    if (!isWon) return 'snowfall';
+    return WIN_TYPES[Math.floor(Math.random() * WIN_TYPES.length)];
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
+  }, [active, isWon]);
 
   const particles = useMemo(
-    () => generateParticles(celebrationType, moduleColor),
-    [celebrationType, moduleColor],
+    () => generateParticles(celebrationType, moduleColor, isWon),
+    [celebrationType, moduleColor, isWon],
   );
 
   // Check reduced motion
@@ -354,11 +425,11 @@ export function CelebrationAnimation({ moduleColor, active }: CelebrationAnimati
       progress.setValue(0);
       Animated.timing(progress, {
         toValue: 1,
-        duration: ANIMATION_DURATION,
+        duration: animationDuration,
         useNativeDriver: true,
       }).start();
     }
-  }, [active, reduceMotion, progress]);
+  }, [active, reduceMotion, progress, animationDuration]);
 
   if (!active || reduceMotion) return null;
 
@@ -369,7 +440,7 @@ export function CelebrationAnimation({ moduleColor, active }: CelebrationAnimati
           key={particle.id}
           particle={particle}
           type={celebrationType}
-          progress={progress}
+          animationDuration={animationDuration}
         />
       ))}
     </View>

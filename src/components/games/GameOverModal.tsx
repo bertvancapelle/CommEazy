@@ -2,8 +2,8 @@
  * GameOverModal — End-of-game results popup
  *
  * Centered floating card with semi-transparent backdrop.
- * On win: celebration animation + score count-up + trophy icon + win sound.
- * On loss: cross icon + static score.
+ * On win: celebration animation (random type) + score count-up + win sound.
+ * On loss: snowfall animation + static score + lose sound.
  *
  * Uses PanelAwareModal (fade) + LiquidGlassView for Liquid Glass compliance.
  *
@@ -112,7 +112,6 @@ export function GameOverModal({
   // Animations
   const cardScale = useRef(new Animated.Value(0.8)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
-  const iconScale = useRef(new Animated.Value(0)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
   // Score count-up (only on win)
@@ -127,7 +126,6 @@ export function GameOverModal({
       // Reset animations
       cardScale.setValue(0.8);
       cardOpacity.setValue(0);
-      iconScale.setValue(0);
       backdropOpacity.setValue(0);
 
       // Backdrop fade-in
@@ -152,17 +150,6 @@ export function GameOverModal({
         }),
       ]).start();
 
-      // Icon bounce-in (delayed)
-      Animated.sequence([
-        Animated.delay(300),
-        Animated.spring(iconScale, {
-          toValue: 1,
-          friction: 5,
-          tension: 80,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
       // Play win or lose sound
       if (isWon) {
         setTimeout(() => gameSoundService.playWinSound(), 200);
@@ -170,7 +157,7 @@ export function GameOverModal({
         setTimeout(() => gameSoundService.playLoseSound(), 200);
       }
     }
-  }, [visible, isWon, cardScale, cardOpacity, iconScale, backdropOpacity]);
+  }, [visible, isWon, cardScale, cardOpacity, backdropOpacity]);
 
   if (!visible) return null;
 
@@ -181,12 +168,6 @@ export function GameOverModal({
       animationType="fade"
       moduleId={moduleId}
     >
-      {/* Celebration animation (behind everything, win only) */}
-      <CelebrationAnimation
-        moduleColor={moduleColor}
-        active={visible && isWon}
-      />
-
       {/* Semi-transparent backdrop */}
       <Animated.View
         style={[styles.backdrop, { opacity: backdropOpacity }]}
@@ -201,6 +182,13 @@ export function GameOverModal({
         />
       </Animated.View>
 
+      {/* Celebration animation (above backdrop, below card) */}
+      <CelebrationAnimation
+        moduleColor={moduleColor}
+        active={visible}
+        isWon={isWon}
+      />
+
       {/* Centered popup card */}
       <View style={styles.centerContainer} pointerEvents="box-none">
         <Animated.View
@@ -214,23 +202,6 @@ export function GameOverModal({
         >
           <LiquidGlassView moduleId={moduleId} cornerRadius={16}>
             <View style={[styles.card, { backgroundColor: themeColors.surface }]}>
-              {/* Result icon */}
-              <Animated.View
-                style={[
-                  styles.iconContainer,
-                  {
-                    backgroundColor: isWon ? moduleColor + '1A' : themeColors.border + '40',
-                    transform: [{ scale: iconScale }],
-                  },
-                ]}
-              >
-                <Icon
-                  name={isWon ? 'star' : 'x'}
-                  size={32}
-                  color={isWon ? moduleColor : themeColors.textSecondary}
-                />
-              </Animated.View>
-
               {/* Title */}
               <Text style={[styles.title, { color: themeColors.textPrimary }]}>
                 {title}
@@ -339,15 +310,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
     overflow: 'hidden',
-  },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: spacing.md,
   },
   title: {
     ...typography.h3,
