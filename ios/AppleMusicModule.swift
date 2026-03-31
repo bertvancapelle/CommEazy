@@ -794,11 +794,21 @@ class AppleMusicModule: RCTEventEmitter, @unchecked Sendable {
                 request.properties = [.tracks]
                 let response = try await request.response()
                 
-                if let album = response.items.first, let tracks = album.tracks, !tracks.isEmpty {
-                    player.queue = ApplicationMusicPlayer.Queue(for: tracks, startingAt: tracks[safe: startIndex])
-                    try await player.play()
-                    resolve(["success": true])
-                    return
+                if let album = response.items.first {
+                    if let tracks = album.tracks, !tracks.isEmpty {
+                        NSLog("[AppleMusicModule] playAlbum catalog: '\(album.title)' — \(tracks.count) tracks")
+                        player.queue = ApplicationMusicPlayer.Queue(for: tracks, startingAt: tracks[safe: startIndex])
+                        try await player.play()
+                        resolve(["success": true])
+                        return
+                    } else {
+                        NSLog("[AppleMusicModule] playAlbum catalog: '\(album.title)' found but tracks nil/empty, trying with album queue")
+                        // Some albums return nil tracks — try queueing the album directly
+                        player.queue = ApplicationMusicPlayer.Queue(for: [album])
+                        try await player.play()
+                        resolve(["success": true])
+                        return
+                    }
                 }
             } catch {
                 NSLog("[AppleMusicModule] Catalog playAlbum failed, trying library: \(error.localizedDescription)")
@@ -815,7 +825,19 @@ class AppleMusicModule: RCTEventEmitter, @unchecked Sendable {
                     return
                 }
                 
-                // Fetch songs for this library album by title
+                NSLog("[AppleMusicModule] playAlbum library fallback: '\(album.title)'")
+                
+                // Try queueing the library album directly first (most reliable)
+                do {
+                    player.queue = ApplicationMusicPlayer.Queue(for: [album])
+                    try await player.play()
+                    resolve(["success": true])
+                    return
+                } catch {
+                    NSLog("[AppleMusicModule] Direct album queue failed, trying song lookup: \(error.localizedDescription)")
+                }
+                
+                // Last resort: fetch songs by album title
                 var songsRequest = MusicLibraryRequest<Song>()
                 songsRequest.filter(matching: \.albumTitle, equalTo: album.title)
                 songsRequest.sort(by: \.trackNumber, ascending: true)

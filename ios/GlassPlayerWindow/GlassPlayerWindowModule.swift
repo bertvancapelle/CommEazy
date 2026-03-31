@@ -33,6 +33,10 @@ class GlassPlayerWindowModule: RCTEventEmitter {
     private var storedBorderEnabled: Bool = false
     private var storedBorderColorHex: String = "#FFFFFF"
     
+    // Stored controls config — applied after window creation
+    // (configureControls may be called before showMiniPlayer creates the window)
+    private var storedControlsConfig: NSDictionary?
+    
     @available(iOS 26.0, *)
     private var glassWindow: GlassPlayerWindow? {
         get { playerWindow as? GlassPlayerWindow }
@@ -261,6 +265,9 @@ class GlassPlayerWindowModule: RCTEventEmitter {
     /// Configure full player controls (which buttons to show/hide)
     @objc
     func configureControls(_ controls: NSDictionary) {
+        // Always store config so it survives window creation/recreation
+        storedControlsConfig = controls
+        
         if #available(iOS 26.0, *) {
             DispatchQueue.main.async {
                 self.glassWindow?.configureControls(controls)
@@ -315,6 +322,11 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         
         // Re-apply stored button style settings (may have been set before window existed)
         window.configureButtonStyle(borderEnabled: storedBorderEnabled, borderColorHex: storedBorderColorHex)
+        
+        // Re-apply stored controls config (configureControls is often called before showMiniPlayer)
+        if let controls = storedControlsConfig {
+            window.configureControls(controls)
+        }
 
         NSLog("[GlassPlayer] ✅ Created GlassPlayerWindow")
     }
