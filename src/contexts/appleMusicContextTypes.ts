@@ -196,6 +196,10 @@ export interface AppleMusicContextValue {
   skipToNext: () => Promise<void>;
   skipToPrevious: () => Promise<void>;
   seekTo: (position: number) => Promise<void>;
+  /** Get current playback position in seconds (reads ref, no re-render) */
+  getPlaybackPosition: () => number;
+  /** Get current track duration in seconds (reads ref, no re-render) */
+  getPlaybackDuration: () => number;
 
   // Shuffle & Repeat (iOS only)
   shuffleMode: ShuffleMode;

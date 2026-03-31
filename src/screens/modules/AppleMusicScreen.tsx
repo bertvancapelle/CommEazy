@@ -156,6 +156,8 @@ export function AppleMusicScreen() {
     nowPlaying: currentSong,
     effectiveArtworkUrl,
     playbackState,
+    getPlaybackPosition,
+    getPlaybackDuration,
     shuffleMode,
     repeatMode,
     // Controls
@@ -416,16 +418,16 @@ export function AppleMusicScreen() {
       await seekTo(position);
     },
     onSkipForward: async () => {
-      // Skip 30 seconds forward
-      const currentTime = playbackState?.currentTime ?? 0;
-      const duration = playbackState?.duration ?? 0;
+      // Skip 30 seconds forward — read position from ref (no re-render dependency)
+      const currentTime = getPlaybackPosition();
+      const duration = getPlaybackDuration();
       const newPosition = Math.min(currentTime + 30, duration);
       console.log('[AppleMusicScreen] Skip forward 30s:', currentTime, '->', newPosition);
       await seekTo(newPosition);
     },
     onSkipBackward: async () => {
-      // Skip 10 seconds backward
-      const currentTime = playbackState?.currentTime ?? 0;
+      // Skip 10 seconds backward — read position from ref (no re-render dependency)
+      const currentTime = getPlaybackPosition();
       const newPosition = Math.max(currentTime - 10, 0);
       console.log('[AppleMusicScreen] Skip backward 10s:', currentTime, '->', newPosition);
       await seekTo(newPosition);
@@ -493,26 +495,51 @@ export function AppleMusicScreen() {
     // this effect to re-fire on every position tick, flooding showGlassMiniPlayer calls.
   }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, showGlassMiniPlayer, configureGlassControls, appleMusicColor]);
 
-  // Effect 2: Update playback state when playing/paused changes
+  // Effect 2a: Push status changes (play/pause/shuffle/repeat) immediately to Glass Player
   useEffect(() => {
-    if (!isGlassPlayerAvailable || !isGlassPlayerVisible) {
-      return;
-    }
+    if (!isGlassPlayerAvailable || !isGlassPlayerVisible) return;
 
+    const pos = getPlaybackPosition();
+    const dur = getPlaybackDuration();
     updateGlassPlaybackState({
       isPlaying,
       isLoading: isPlaybackLoading,
       isBuffering: false,
-      progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
-      position: playbackState?.currentTime ?? 0,
-      duration: playbackState?.duration ?? 0,
+      progress: dur > 0 ? pos / dur : 0,
+      position: pos,
+      duration: dur,
       isFavorite: false,
       shuffleMode,
       repeatMode,
     });
-  }, [isGlassPlayerAvailable, isGlassPlayerVisible, isPlaying, isPlaybackLoading, playbackState, shuffleMode, repeatMode, updateGlassPlaybackState]);
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, isPlaying, isPlaybackLoading, shuffleMode, repeatMode, updateGlassPlaybackState, getPlaybackPosition, getPlaybackDuration]);
 
-  // Effect 3: Update content when song/metadata changes
+  // Effect 2b: Poll position ref every 1s to update Glass Player progress bar.
+  // This replaces the old dependency on playbackState (which caused re-renders on every tick).
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !isGlassPlayerVisible || !isPlaying) return;
+
+    const interval = setInterval(() => {
+      const pos = getPlaybackPosition();
+      const dur = getPlaybackDuration();
+      updateGlassPlaybackState({
+        isPlaying: true,
+        isLoading: false,
+        isBuffering: false,
+        progress: dur > 0 ? pos / dur : 0,
+        position: pos,
+        duration: dur,
+        isFavorite: false,
+        shuffleMode,
+        repeatMode,
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, isPlaying, shuffleMode, repeatMode, updateGlassPlaybackState, getPlaybackPosition, getPlaybackDuration]);
+
+  // Effect 3: Update content when song/metadata changes (NOT on position ticks)
+  // Progress is handled by Effect 2b's interval — this effect only sends artwork/title/subtitle.
   useEffect(() => {
     if (!isGlassPlayerAvailable || !isGlassPlayerVisible || !currentSong) {
       return;
@@ -520,16 +547,18 @@ export function AppleMusicScreen() {
 
     // Use effectiveArtworkUrl which prefers cached search result URLs
     const artworkUrl = effectiveArtworkUrl;
+    const pos = getPlaybackPosition();
+    const dur = getPlaybackDuration();
 
     updateGlassContent({
       tintColorHex: appleMusicColor,  // MUST include to prevent fallback to default color
       artwork: artworkUrl,
       title: currentSong.title,
       subtitle: currentSong.artistName,
-      progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
+      progress: dur > 0 ? pos / dur : 0,
       showStopButton: true,  // Consistent stop button across all modules
     });
-  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState?.currentTime, playbackState?.duration, appleMusicColor, updateGlassContent]);
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, appleMusicColor, updateGlassContent, getPlaybackPosition, getPlaybackDuration]);
 
   // Effect 4: REMOVED - Glass Player is system-wide and should NOT hide on navigation
   // The Glass Player window stays visible while music plays, regardless of which screen is focused.

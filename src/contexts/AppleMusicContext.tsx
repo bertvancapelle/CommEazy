@@ -268,6 +268,11 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   const artworkCacheRef = useRef(artworkCache);
   artworkCacheRef.current = artworkCache;
 
+  // Position refs: updated on every native tick WITHOUT triggering React re-renders.
+  // Components that need real-time position (Glass Player, SeekSlider) read these via interval.
+  const playbackPositionRef = useRef<number>(0);
+  const playbackDurationRef = useRef<number>(0);
+
   useEffect(() => {
     if (!isIOS || !AppleMusicModule) return;
 
@@ -277,6 +282,8 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     let lastLoggedStatus: string | null = null;
     let lastPosition: number = 0;
     let lastStatus: string | null = null;
+    let lastShuffleMode: string | null = null;
+    let lastRepeatMode: string | null = null;
 
     const playbackStateSubscription = eventEmitter.addListener(
       'onPlaybackStateChange',
@@ -287,17 +294,30 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
           lastLoggedStatus = state.status;
         }
 
-        // Debounce: skip update if only position changed by <0.5s and status is the same.
-        // This prevents re-rendering the entire component tree on every timer tick.
+        // Always update the position ref (cheap, no re-render)
+        playbackPositionRef.current = state.currentTime ?? 0;
+        playbackDurationRef.current = state.duration ?? 0;
+
+        // Determine what changed
         const statusChanged = state.status !== lastStatus;
+        const shuffleChanged = state.shuffleMode !== lastShuffleMode;
+        const repeatChanged = state.repeatMode !== lastRepeatMode;
         const positionDelta = Math.abs((state.currentTime ?? 0) - lastPosition);
 
-        if (!statusChanged && positionDelta < 0.5) {
-          return; // Skip redundant update
+        // Only trigger React state update (and re-render of all consumers) when:
+        // 1. Status changed (play/pause/stop)
+        // 2. Shuffle or repeat mode changed
+        // 3. Position jumped >2s (seek or track change, not normal playback tick)
+        const significantChange = statusChanged || shuffleChanged || repeatChanged || positionDelta > 2;
+
+        if (!significantChange) {
+          return; // Skip — position ref is already updated for components that need it
         }
 
         lastStatus = state.status;
         lastPosition = state.currentTime ?? 0;
+        lastShuffleMode = state.shuffleMode;
+        lastRepeatMode = state.repeatMode;
 
         setPlaybackState(state);
         setIsLoading(false);
@@ -902,6 +922,10 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     }
   }, [isIOS]);
 
+  // Stable getters for real-time position (read from ref, no re-render)
+  const getPlaybackPosition = useCallback(() => playbackPositionRef.current, []);
+  const getPlaybackDuration = useCallback(() => playbackDurationRef.current, []);
+
   // ============================================================
   // Shuffle & Repeat (iOS only)
   // ============================================================
@@ -1116,6 +1140,8 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       skipToNext,
       skipToPrevious,
       seekTo,
+      getPlaybackPosition,
+      getPlaybackDuration,
 
       // Shuffle & Repeat
       shuffleMode,
@@ -1193,6 +1219,8 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       skipToNext,
       skipToPrevious,
       seekTo,
+      getPlaybackPosition,
+      getPlaybackDuration,
       shuffleMode,
       repeatMode,
       setShuffleModeCallback,

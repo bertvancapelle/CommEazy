@@ -6,21 +6,20 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-31
-- **Sessie:** Games Session 14 — GameOverModal animation fixes
-- **Commit:** `d050012` fix(games): fix invisible animations + add snowfall loss effect + remove icon circle
+- **Sessie:** Apple Music Playback Fix + Game Timer Fix
+- **Commit:** `806a574` fix(appleMusic): add catalog→library fallback for album/playlist playback
 
 ## Voltooide Taken Deze Sessie
 
-1. **GameOverModal animation fixes (3 bugs + 2 UX wijzigingen):**
-   - **Bug 1:** Confetti translateY double multiplication (`startY * SCREEN_HEIGHT` maar startY was al `particle.y * SCREEN_HEIGHT`) — particles op -72.000px
-   - **Bug 2:** CelebrationAnimation gerenderd VOOR backdrop in z-order — backdrop dekte animatie volledig af
-   - **Bug 3:** Animation alleen geactiveerd op win (`active={visible && isWon}`) — loss had geen animatie
-   - **UX 1:** Snowfall animatie toegevoegd voor verlies — langzaam dalende sneeuwvlokken in gedempte grijstinten
-   - **UX 2:** Decoratief 64pt icoon-cirkel (ster/kruis) verwijderd — verwarrend voor senioren
+1. **Apple Music album/playlist playback fix (3 wijzigingen):**
+   - **Native Swift `playAlbum()`:** Catalog-only → catalog-first-then-library-fallback (dual-path pattern uit `getAlbumDetails`)
+   - **Native Swift `playPlaylist()`:** Zelfde dual-path pattern toegevoegd
+   - **React Native `AppleMusicDetailModal.tsx`:** Playback error banner met dismiss knop, i18n key `modules.appleMusic.playbackError` in alle 13 locales
+   - **Root cause:** `getAlbumDetails()` had catalog→library fallback en retourneerde library IDs, maar `playAlbum()` probeerde die library IDs met catalog-only `MusicCatalogResourceRequest` → altijd `MusicDataRequest.Error error 1`
 
-2. **Woordraad UI improvements (vorige sub-sessie, commit `35db4cf`):**
-   - Uniforme 44pt tiles, rijnummers, pogingsteller
-   - WatermelonDB "pending changes" fix in GameContext.tsx
+2. **Game timer freeze fix (vorige sub-sessie, commit `76dc6c4`):**
+   - `useGameSession.ts`: ref-based duration calculation i.p.v. stale state
+   - `WoordyScreen.tsx`: correcte arg volgorde + completeGame in useEffect
 
 ## Openstaande Taken
 
@@ -55,20 +54,15 @@
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Snowfall voor verlies-animatie | Visueel onderscheidend van win (dalend vs stijgend), muted kleuren passen bij "game over" |
-| Icoon-cirkel verwijderd | 64pt cirkel met ster/kruis deed niets bij tik — verwarrend voor senioren, navigatieknoppen zijn voldoende |
-| CelebrationAnimation NA backdrop renderen | Z-order fix — animatie moet BOVEN backdrop maar ONDER card verschijnen |
-| Loss animatie langzamer (3500ms vs 2500ms) | Sneeuwvlokken moeten langzaam en sereen dalen, niet gehaast |
+| Dual-path catalog→library voor playAlbum/playPlaylist | Consistent met bestaand `getAlbumDetails()` pattern; lost `MusicDataRequest.Error error 1` op voor alle gebruikers |
+| Error banner i.p.v. Alert.alert | Conform CLAUDE.md regel: `Alert.alert()` alleen voor bevestigingsdialogen (2+ knoppen) |
+| Library fallback: songs via albumTitle filter | `MusicLibraryRequest<Song>` gefilterd op `albumTitle` + gesorteerd op `trackNumber` — betrouwbaarder dan album.tracks voor library items |
 
 ## Context voor Volgende Sessie
 
-- **CelebrationAnimation:** `src/components/games/CelebrationAnimation.tsx` — 6 types (5 win + snowfall loss)
-- **GameOverModal:** `src/components/games/GameOverModal.tsx` — geen icon circle meer, title is nu eerste element
-- **Game screen ModuleHeader pattern:** `showGridButton={false}` + `rightAccessory={renderGamepadButton(onBack)}`
+- **AppleMusicModule.swift:** `playAlbum()` (line ~785) en `playPlaylist()` (line ~850) hebben nu dual-path
+- **AppleMusicDetailModal.tsx:** `src/components/appleMusic/AppleMusicDetailModal.tsx` — playbackError state + error banner
+- **Dual-path pattern referentie:** `getAlbumDetails()` in AppleMusicModule.swift (line ~1502)
 - **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
-- **Engines locatie:** `src/engines/{woordraad,sudoku,solitaire,memory,trivia,woordy}/`
-- **Screens locatie:** `src/screens/modules/{Woordraad,Sudoku,Solitaire,Memory,Trivia,Woordy}Screen.tsx`
-- **Download service:** `src/services/downloadService.ts` — gedeeld voor trivia + woordy + woordraad
-- **GameLobbyScreen:** Alle 6 routes actief, iterates over ALL_GAME_TYPES
 - **WatermelonDB schema:** Versie 30 (game_sessions + game_stats tabellen)
 - **XMPP game protocol:** Types gedefinieerd, hooks gebouwd, sendGameStanza is stub
