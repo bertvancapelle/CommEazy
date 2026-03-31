@@ -512,6 +512,70 @@ export function findHint(state: SolitaireState): { from: PileLocation; to: PileL
   return null;
 }
 
+/**
+ * Find the best auto-move for a specific card location.
+ * Priority: Foundation > Tableau (prefer revealing face-down cards, then longer columns).
+ * Returns destination location or null if no valid move exists.
+ */
+export function findBestMoveForCard(
+  state: SolitaireState,
+  from: PileLocation,
+): PileLocation | null {
+  const cards = getCardsFromLocation(state, from);
+  if (!cards || cards.length === 0) return null;
+
+  const topCard = cards[0];
+
+  // Priority 1: Foundation (only single cards)
+  if (cards.length === 1) {
+    for (let f = 0; f < FOUNDATION_COUNT; f++) {
+      if (canPlaceOnFoundation(topCard, state.foundations[f])) {
+        return { pile: 'foundation', pileIndex: f, cardIndex: 0 };
+      }
+    }
+  }
+
+  // Priority 2: Tableau — score each valid column and pick the best
+  let bestCol = -1;
+  let bestScore = -1;
+
+  for (let col = 0; col < TABLEAU_COLUMNS; col++) {
+    // Skip same column
+    if (from.pile === 'tableau' && from.pileIndex === col) continue;
+    if (!canPlaceOnTableau(topCard, state.tableau[col])) continue;
+
+    let score = 0;
+
+    // Prefer columns where the move reveals a face-down card
+    if (from.pile === 'tableau') {
+      const fromColumn = state.tableau[from.pileIndex];
+      const cardBelow = from.cardIndex > 0 ? fromColumn[from.cardIndex - 1] : null;
+      if (cardBelow && !cardBelow.faceUp) {
+        score += 100; // High priority: reveals hidden card
+      }
+    }
+
+    // Prefer non-empty columns (building on existing stacks)
+    if (state.tableau[col].length > 0) {
+      score += 10;
+    }
+
+    // Prefer longer columns (consolidate stacks)
+    score += state.tableau[col].length;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestCol = col;
+    }
+  }
+
+  if (bestCol >= 0) {
+    return { pile: 'tableau', pileIndex: bestCol, cardIndex: state.tableau[bestCol].length };
+  }
+
+  return null;
+}
+
 // ============================================================
 // Scoring
 // ============================================================

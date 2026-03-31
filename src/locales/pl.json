@@ -2929,6 +2929,7 @@
       "tableau": "Kolumna",
       "hint": "Podpowiedź",
       "autoComplete": "Auto uzupełnianie",
+      "autoMove": "Automatyczne umieszczanie",
       "faceDown": "Karta zakryta",
       "draw": "Ciągnij kartę"
     },

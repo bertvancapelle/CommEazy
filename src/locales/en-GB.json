@@ -3074,6 +3074,7 @@
       "tableau": "Column",
       "hint": "Hint",
       "autoComplete": "Auto complete",
+        "autoMove": "Auto place",
       "faceDown": "Card face down",
       "draw": "Draw card"
     },

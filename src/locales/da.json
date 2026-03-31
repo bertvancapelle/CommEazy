@@ -2905,6 +2905,7 @@
       "tableau": "Kolonne",
       "hint": "Tip",
       "autoComplete": "Auto fuldfør",
+      "autoMove": "Autoplacering",
       "faceDown": "Kort med bagsiden opad",
       "draw": "Træk kort"
     },

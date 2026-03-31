@@ -12,8 +12,9 @@
  * @see src/types/games.ts
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, Alert } from 'react-native';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { View, Text, Image, StyleSheet, Dimensions, Alert, Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 
@@ -37,6 +38,7 @@ import {
   autoComplete,
   canAutoComplete,
   findHint,
+  findBestMoveForCard,
   calculateScore,
   getStarRating,
   SUIT_SYMBOLS,
@@ -52,6 +54,7 @@ import {
 
 const MODULE_ID: ModuleColorId = 'solitaire' as ModuleColorId;
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const STORAGE_KEY_AUTO_MOVE = '@commeazy/solitaire_autoMove';
 
 // Card sizing — maximized to fill screen width without scrolling
 const CARD_GAP = 2;
@@ -104,6 +107,37 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
   const [difficulty, setDifficulty] = useState<GameDifficulty>('easy');
   const [showStats, setShowStats] = useState(false);
   const [hintLocation, setHintLocation] = useState<PileLocation | null>(null);
+  const [autoMoveEnabled, setAutoMoveEnabled] = useState(true); // Default: ON
+  const [flashLocation, setFlashLocation] = useState<PileLocation | null>(null);
+  const flashAnim = useRef(new Animated.Value(1)).current;
+
+  // Load auto-move setting from AsyncStorage
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY_AUTO_MOVE).then(value => {
+      if (value !== null) setAutoMoveEnabled(value === 'true');
+    });
+  }, []);
+
+  // Toggle auto-move setting
+  const handleToggleAutoMove = useCallback(() => {
+    setAutoMoveEnabled(prev => {
+      const next = !prev;
+      AsyncStorage.setItem(STORAGE_KEY_AUTO_MOVE, String(next));
+      return next;
+    });
+  }, []);
+
+  // Flash animation for "no valid move"
+  const triggerFlash = useCallback((location: PileLocation) => {
+    setFlashLocation(location);
+    flashAnim.setValue(1);
+    Animated.sequence([
+      Animated.timing(flashAnim, { toValue: 0.3, duration: 100, useNativeDriver: true }),
+      Animated.timing(flashAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
+      Animated.timing(flashAnim, { toValue: 0.3, duration: 100, useNativeDriver: true }),
+      Animated.timing(flashAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
+    ]).start(() => setFlashLocation(null));
+  }, [flashAnim]);
 
   // Foundation count
   const foundationCount = useMemo(() => {
@@ -138,6 +172,27 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
     if (!gameState || gameState.isComplete) return;
     setHintLocation(null);
 
+    // Auto-move mode: find best destination and execute directly
+    if (autoMoveEnabled && location.pile !== 'foundation') {
+      const bestDest = findBestMoveForCard(gameState, location);
+      if (bestDest) {
+        const moved = moveCards(gameState, location, bestDest);
+        if (moved) {
+          setGameState(moved);
+          if (moved.isComplete && moved.isWon) {
+            const score = calculateScore(moved, durationSeconds);
+            completeGame(score, true);
+            setPhase('gameover');
+          }
+          return;
+        }
+      }
+      // No valid move — flash the card
+      triggerFlash(location);
+      return;
+    }
+
+    // Standard two-tap mode
     const newState = selectCard(gameState, location);
     setGameState(newState);
 
@@ -147,7 +202,7 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
       completeGame(score, true);
       setPhase('gameover');
     }
-  }, [gameState, durationSeconds, completeGame]);
+  }, [gameState, durationSeconds, completeGame, autoMoveEnabled, triggerFlash]);
 
   // Auto-complete
   const handleAutoComplete = useCallback(() => {
@@ -227,6 +282,12 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
     return sel.cardIndex === cardIndex;
   }, [gameState?.selectedLocation]);
 
+  // Check if location is flashing (no valid auto-move)
+  const isFlashing = useCallback((pile: string, pileIndex: number, cardIndex: number): boolean => {
+    if (!flashLocation) return false;
+    return flashLocation.pile === pile && flashLocation.pileIndex === pileIndex && flashLocation.cardIndex === cardIndex;
+  }, [flashLocation]);
+
   // ============================================================
   // Gamepad button (RIGHT side — consistent across all games)
   // ============================================================
@@ -283,6 +344,30 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
                   options={DIFFICULTY_OPTIONS.map(o => ({ ...o, label: t(o.label) }))}
                   moduleId={MODULE_ID}
                 />
+
+                <View style={{ height: spacing.md }} />
+
+                {/* Auto-move toggle */}
+                <HapticTouchable
+                  onPress={handleToggleAutoMove}
+                  style={styles.autoMoveRow}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: autoMoveEnabled }}
+                  accessibilityLabel={t('games.solitaire.autoMove')}
+                >
+                  <Text style={[styles.autoMoveLabel, { color: themeColors.textPrimary }]}>
+                    {t('games.solitaire.autoMove')}
+                  </Text>
+                  <View style={[
+                    styles.toggleTrack,
+                    { backgroundColor: autoMoveEnabled ? moduleColor : themeColors.border },
+                  ]}>
+                    <View style={[
+                      styles.toggleThumb,
+                      { transform: [{ translateX: autoMoveEnabled ? 22 : 2 }] },
+                    ]} />
+                  </View>
+                </HapticTouchable>
 
                 <View style={{ height: spacing.lg }} />
 
@@ -416,12 +501,17 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
                 accessibilityLabel={t('games.solitaire.waste')}
               >
                 {gameState && gameState.waste.length > 0 ? (
-                  <CardView
-                    card={gameState.waste[gameState.waste.length - 1]}
-                    moduleColor={moduleColor}
-                    themeColors={themeColors}
-                    isHinted={isHinted('waste', 0, gameState.waste.length - 1)}
-                  />
+                  <Animated.View style={[
+                    { width: '100%', height: '100%' },
+                    isFlashing('waste', 0, gameState.waste.length - 1) && { opacity: flashAnim },
+                  ]}>
+                    <CardView
+                      card={gameState.waste[gameState.waste.length - 1]}
+                      moduleColor={moduleColor}
+                      themeColors={themeColors}
+                      isHinted={isHinted('waste', 0, gameState.waste.length - 1)}
+                    />
+                  </Animated.View>
                 ) : null}
               </HapticTouchable>
 
@@ -501,12 +591,17 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
                         }
                       >
                         {card.faceUp ? (
-                          <CardView
-                            card={card}
-                            moduleColor={moduleColor}
-                            themeColors={themeColors}
-                            isHinted={isHinted('tableau', colIndex, cardIndex)}
-                          />
+                          <Animated.View style={[
+                            { width: '100%', height: '100%' },
+                            isFlashing('tableau', colIndex, cardIndex) && { opacity: flashAnim },
+                          ]}>
+                            <CardView
+                              card={card}
+                              moduleColor={moduleColor}
+                              themeColors={themeColors}
+                              isHinted={isHinted('tableau', colIndex, cardIndex)}
+                            />
+                          </Animated.View>
                         ) : (
                           <CardBackView moduleColor={moduleColor} />
                         )}
@@ -747,5 +842,29 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Auto-move toggle
+  autoMoveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: touchTargets.minimum,
+    paddingVertical: spacing.sm,
+  },
+  autoMoveLabel: {
+    ...typography.body,
+    flex: 1,
+  },
+  toggleTrack: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+  },
+  toggleThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
   },
 });

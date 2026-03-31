@@ -3074,6 +3074,7 @@
       "tableau": "Kolom",
       "hint": "Hint",
       "autoComplete": "Auto voltooien",
+      "autoMove": "Automatisch plaatsen",
       "faceDown": "Kaart gedekt",
       "draw": "Trek kaart"
     },

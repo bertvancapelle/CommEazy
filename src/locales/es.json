@@ -3070,6 +3070,7 @@
       "tableau": "Columna",
       "hint": "Pista",
       "autoComplete": "Auto completar",
+      "autoMove": "Colocar automáticamente",
       "faceDown": "Carta boca abajo",
       "draw": "Robar carta"
     },

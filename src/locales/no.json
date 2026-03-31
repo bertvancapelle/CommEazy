@@ -2935,6 +2935,7 @@
       "tableau": "Kolonne",
       "hint": "Hint",
       "autoComplete": "Auto fullfør",
+      "autoMove": "Autoplassering",
       "faceDown": "Kort med baksiden opp",
       "draw": "Trekk kort"
     },

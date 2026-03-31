@@ -3012,6 +3012,7 @@
       "tableau": "Colonna",
       "hint": "Suggerimento",
       "autoComplete": "Auto completamento",
+      "autoMove": "Posizionamento automatico",
       "faceDown": "Carta coperta",
       "draw": "Pesca carta"
     },

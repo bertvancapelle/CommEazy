@@ -3078,6 +3078,7 @@
       "tableau": "Coluna",
       "hint": "Dica",
       "autoComplete": "Auto completar",
+      "autoMove": "Colocação automática",
       "faceDown": "Carta virada para baixo",
       "draw": "Tirar carta"
     },
