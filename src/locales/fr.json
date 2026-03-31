@@ -2981,6 +2981,22 @@
       "hint": "Indice",
       "resign": "Abandonner"
     },
+    "sounds": {
+      "title": "Son",
+      "tapSound": "Son de touche",
+      "winSound": "Son de victoire",
+      "off": "Désactivé",
+      "click": "Clic",
+      "pop": "Pop",
+      "tick": "Tic",
+      "ping": "Ping",
+      "swoosh": "Swoosh",
+      "horn": "Cor",
+      "firework": "Feu d'artifice",
+      "twinkle": "Scintillement",
+      "chime": "Carillon",
+      "balloonpop": "Ballon"
+    },
     "multiplayer": {
       "inviteSent": "Invitation envoyée",
       "inviteReceived": "{{name}} vous invite à jouer à {{game}}",

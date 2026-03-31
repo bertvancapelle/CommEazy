@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
-import { GameHeader, GameOverModal } from '@/components/games';
+import { GameHeader, GameOverModal, GameSoundPicker } from '@/components/games';
 import type { GameOverStat } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -278,6 +278,9 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
       <Text style={[styles.menuDescription, { color: themeColors.textSecondary }]}>
         {t('games.woordy.howToPlay')}
       </Text>
+
+      {/* Sound settings */}
+      <GameSoundPicker moduleColor={moduleColor} />
 
       <HapticTouchable
         style={[styles.startButton, { backgroundColor: moduleColor }]}
@@ -603,17 +606,22 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
       {gameState && showGameOver && (
         <GameOverModal
           visible={showGameOver}
-          gameType={'woordy' as any}
-          outcome={getWinner(gameState) === 'player' ? 'win' : getWinner(gameState) === 'draw' ? 'draw' : 'loss'}
+          moduleId={MODULE_ID}
+          title={getWinner(gameState) === 'player'
+            ? t('games.common.congratulations')
+            : getWinner(gameState) === 'draw'
+              ? t('games.common.draw')
+              : t('games.common.gameOver')
+          }
           score={gameState.player.score}
-          durationSeconds={durationSeconds}
+          isWon={getWinner(gameState) === 'player'}
           stats={gameOverStats}
-          stars={getStarRating(gameState)}
-          onClose={handleGameOverClose}
           onPlayAgain={() => {
             setShowGameOver(false);
             handleStartGame();
           }}
+          onBackToLobby={handleGameOverClose}
+          onClose={handleGameOverClose}
         />
       )}
     </View>

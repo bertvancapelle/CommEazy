@@ -2922,6 +2922,22 @@
       "hint": "Suggerimento",
       "resign": "Arrenditi"
     },
+    "sounds": {
+      "title": "Suono",
+      "tapSound": "Suono tocco",
+      "winSound": "Suono vittoria",
+      "off": "Disattivato",
+      "click": "Clic",
+      "pop": "Pop",
+      "tick": "Tic",
+      "ping": "Ping",
+      "swoosh": "Swoosh",
+      "horn": "Corno",
+      "firework": "Fuoco d'artificio",
+      "twinkle": "Scintillio",
+      "chime": "Campanello",
+      "balloonpop": "Palloncino"
+    },
     "multiplayer": {
       "inviteSent": "Invito inviato",
       "inviteReceived": "{{name}} ti invita a giocare a {{game}}",

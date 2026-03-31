@@ -2815,6 +2815,22 @@
       "hint": "Ledtråd",
       "resign": "Ge upp"
     },
+    "sounds": {
+      "title": "Ljud",
+      "tapSound": "Tryckljud",
+      "winSound": "Vinstljud",
+      "off": "Av",
+      "click": "Klick",
+      "pop": "Pop",
+      "tick": "Tick",
+      "ping": "Ping",
+      "swoosh": "Swoosh",
+      "horn": "Horn",
+      "firework": "Fyrverkeri",
+      "twinkle": "Glitter",
+      "chime": "Klocka",
+      "balloonpop": "Ballong"
+    },
     "multiplayer": {
       "inviteSent": "Inbjudan skickad",
       "inviteReceived": "{{name}} bjuder in dig till {{game}}",

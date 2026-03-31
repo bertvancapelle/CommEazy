@@ -2815,6 +2815,22 @@
       "hint": "Tip",
       "resign": "Giv op"
     },
+    "sounds": {
+      "title": "Lyd",
+      "tapSound": "Tryklyd",
+      "winSound": "Vinderlyd",
+      "off": "Fra",
+      "click": "Klik",
+      "pop": "Pop",
+      "tick": "Tik",
+      "ping": "Ping",
+      "swoosh": "Swoosh",
+      "horn": "Horn",
+      "firework": "Fyrværkeri",
+      "twinkle": "Glimt",
+      "chime": "Klokke",
+      "balloonpop": "Ballon"
+    },
     "multiplayer": {
       "inviteSent": "Invitation sendt",
       "inviteReceived": "{{name}} inviterer dig til {{game}}",

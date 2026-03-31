@@ -2988,6 +2988,22 @@
       "hint": "Dica",
       "resign": "Desistir"
     },
+    "sounds": {
+      "title": "Som",
+      "tapSound": "Som de toque",
+      "winSound": "Som de vitória",
+      "off": "Desligado",
+      "click": "Clique",
+      "pop": "Pop",
+      "tick": "Tique",
+      "ping": "Ping",
+      "swoosh": "Swoosh",
+      "horn": "Buzina",
+      "firework": "Fogo de artifício",
+      "twinkle": "Brilho",
+      "chime": "Sino",
+      "balloonpop": "Balão"
+    },
     "multiplayer": {
       "inviteSent": "Convite enviado",
       "inviteReceived": "{{name}} convida-o para jogar {{game}}",

@@ -2984,6 +2984,22 @@
       "hint": "Hint",
       "resign": "Opgeven"
     },
+    "sounds": {
+      "title": "Geluid",
+      "tapSound": "Tikgeluid",
+      "winSound": "Winstgeluid",
+      "off": "Uit",
+      "click": "Klik",
+      "pop": "Pop",
+      "tick": "Tik",
+      "ping": "Ping",
+      "swoosh": "Swoosh",
+      "horn": "Hoorn",
+      "firework": "Vuurwerk",
+      "twinkle": "Twinkle",
+      "chime": "Bel",
+      "balloonpop": "Ballon"
+    },
     "multiplayer": {
       "inviteSent": "Uitnodiging verstuurd",
       "inviteReceived": "{{name}} nodigt je uit voor {{game}}",

@@ -2980,6 +2980,22 @@
       "hint": "Pista",
       "resign": "Rendirse"
     },
+    "sounds": {
+      "title": "Sonido",
+      "tapSound": "Sonido de toque",
+      "winSound": "Sonido de victoria",
+      "off": "Desactivado",
+      "click": "Clic",
+      "pop": "Pop",
+      "tick": "Tic",
+      "ping": "Ping",
+      "swoosh": "Swoosh",
+      "horn": "Bocina",
+      "firework": "Fuego artificial",
+      "twinkle": "Destello",
+      "chime": "Campana",
+      "balloonpop": "Globo"
+    },
     "multiplayer": {
       "inviteSent": "Invitación enviada",
       "inviteReceived": "{{name}} te invita a jugar {{game}}",

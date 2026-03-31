@@ -2980,6 +2980,22 @@
       "hint": "Hinweis",
       "resign": "Aufgeben"
     },
+    "sounds": {
+      "title": "Ton",
+      "tapSound": "Tippgeräusch",
+      "winSound": "Gewinnton",
+      "off": "Aus",
+      "click": "Klick",
+      "pop": "Pop",
+      "tick": "Tick",
+      "ping": "Ping",
+      "swoosh": "Swoosh",
+      "horn": "Horn",
+      "firework": "Feuerwerk",
+      "twinkle": "Funkeln",
+      "chime": "Glocke",
+      "balloonpop": "Ballon"
+    },
     "multiplayer": {
       "inviteSent": "Einladung gesendet",
       "inviteReceived": "{{name}} lädt dich zu {{game}} ein",

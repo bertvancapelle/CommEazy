@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
-import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView } from '@/components/games';
+import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker } from '@/components/games';
 import type { GameOverStat, DifficultyOption } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -687,6 +687,9 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
                   ))}
                 </View>
 
+                {/* Sound settings */}
+                <GameSoundPicker moduleColor={moduleColor} />
+
                 {/* Start button */}
                 <HapticTouchable
                   style={[styles.startButton, { backgroundColor: moduleColor }]}
@@ -965,6 +968,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
             : t('games.common.completed')
           }
           score={calculateScore(gameState)}
+          isWon={isWin(gameState)}
           stats={gameOverStats}
           onPlayAgain={handlePlayAgain}
           onBackToLobby={() => { handleBackToLobby(); onBack(); }}

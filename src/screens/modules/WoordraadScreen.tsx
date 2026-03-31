@@ -22,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
-import { GameHeader, GameOverModal, GameStatsView } from '@/components/games';
+import { GameHeader, GameOverModal, GameStatsView, GameSoundPicker } from '@/components/games';
 import type { GameOverStat } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -553,6 +553,9 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
                   />
                 </View>
 
+                {/* Sound settings */}
+                <GameSoundPicker moduleColor={moduleColor} />
+
                 <HapticTouchable
                   onPress={handleStartGame}
                   hapticType="success"
@@ -778,6 +781,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
             : t('games.common.gameOver')
           }
           score={calculateScore(gameState)}
+          isWon={gameState.isWon}
           stats={gameOverStats}
           onPlayAgain={handlePlayAgain}
           onBackToLobby={handleBackToLobby}

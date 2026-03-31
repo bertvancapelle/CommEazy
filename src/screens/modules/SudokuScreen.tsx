@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, Icon } from '@/components';
-import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView } from '@/components/games';
+import { GameHeader, GameOverModal, DifficultyPicker, GameStatsView, GameSoundPicker } from '@/components/games';
 import type { GameOverStat, DifficultyOption } from '@/components/games';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -265,6 +265,9 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
 
                 <View style={{ height: spacing.lg }} />
 
+                {/* Sound settings */}
+                <GameSoundPicker moduleColor={moduleColor} />
+
                 <HapticTouchable
                   onPress={handleStartGame}
                   hapticType="success"
@@ -494,6 +497,7 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
             : t('games.common.gameOver')
           }
           score={calculateScore(gameState, durationSeconds)}
+          isWon={gameState.isWon}
           stats={gameOverStats}
           onPlayAgain={handlePlayAgain}
           onBackToLobby={handleBackToLobby}

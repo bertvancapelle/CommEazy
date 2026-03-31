@@ -6,21 +6,17 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-31
-- **Sessie:** Games Session 12 — Solitaire PNG card images
-- **Commit:** `887dba2` feat: replace inline SVG cards with PNG images (notpeter/Vector-Playing-Cards)
+- **Sessie:** Games Session 13 — Solitaire auto-move feature
+- **Commit:** `eefe409` feat(solitaire): add auto-move setting — single tap places card at best position
 
 ## Voltooide Taken Deze Sessie
 
-1. **Solitaire kaarten vervangen door PNG afbeeldingen:**
-   - **Bron:** notpeter/Vector-Playing-Cards (Public Domain / WTFPL licentie)
-   - **52 PNG bestanden** in `src/assets/cards/` (225×315px, @3x resolutie)
-   - **Lookup map:** `src/assets/cards/index.ts` — `getCardImage(suit, rank)` met static `require()` calls
-   - **CardView vereenvoudigd:** Gebruikt nu `<Image>` component i.p.v. inline SVG rendering
-   - **Verwijderd:** `FaceCardArt`, `PipLayout`, `SuitEmblem`, `PIP_LAYOUTS`, `isRedSuit`
-   - **Verwijderd:** `CORNER_RANK_SIZE`, `CORNER_SUIT_SIZE`, `CENTER_PIP_SIZE` constanten
-   - **Verwijderd:** 8 ongebruikte styles (cornerTL/BR, cornerRank/Suit, cardCenter, aceSuit, pipContainer, pip)
-   - **Behouden:** CardBackView (SVG diamantpatroon), hint border, selectie border
-   - **Bundle impact:** ~1.5MB extra (face cards ~70-84KB, number cards ~8-24KB)
+1. **Solitaire auto-move setting:**
+   - **Engine:** `findBestMoveForCard()` in `src/engines/solitaire/engine.ts`
+     - Priority: Foundation first (single cards only), then Tableau scored by: reveals face-down (+100), non-empty column (+10), column length (+length)
+   - **SolitaireScreen:** Toggle in menu (default: ON), single-tap handler, flash animation (opacity blink) when no valid move
+   - **AsyncStorage:** Persisted at `@commeazy/solitaire_autoMove`
+   - **i18n:** `autoMove` key in all 13 locales
 
 ## Openstaande Taken
 
@@ -55,18 +51,18 @@
 
 | Beslissing | Rationale |
 |------------|-----------|
-| notpeter/Vector-Playing-Cards als bron | Public Domain/WTFPL — geen licentie-verplichtingen, hoge kwaliteit traditioneel kaartontwerp |
-| Volledige kaart-PNG i.p.v. alleen center art | Kaarten bevatten professionele indices + artwork — beter leesbaar dan custom text corners bij ~54pt breedte |
-| SVG → PNG conversie (225×315px) | Runtime SVG rendering van 400-622KB face cards is te zwaar; PNG's renderen instant |
-| CardBackView SVG behouden | Diamantpatroon is simpel genoeg voor runtime SVG, hoeft niet als PNG |
+| Auto-move default ON | Senioren profiteren van single-tap UX — minder complexe interactie |
+| Foundation > Tableau prioriteit | Foundation is altijd de beste zet; Tableau scoring weegt face-down reveal het zwaarst |
+| Flash animatie bij geen zet | Visuele feedback zonder error-tekst — subtiel en niet storend |
+| Custom toggle i.p.v. Switch | Consistente stijl met module kleur op alle platforms |
 
 ## Context voor Volgende Sessie
 
+- **Auto-move engine:** `findBestMoveForCard()` in `src/engines/solitaire/engine.ts` (rond regel 520)
+- **Auto-move UI:** Toggle in menu fase van `SolitaireScreen.tsx`, state `autoMoveEnabled`
+- **Flash animation:** `flashAnim` (Animated.Value), `flashLocation` state, `triggerFlash()` callback
 - **Card image assets:** `src/assets/cards/*.png` (52 bestanden) + `src/assets/cards/index.ts` (lookup map)
 - **CardView:** Simpel — `<Image source={getCardImage(suit, rank)}>` met hint/selectie border
-- **CardBackView:** Ongewijzigd — SVG diamantpatroon met module kleur
-- **Card sizing constants:** CARD_GAP=2, TABLEAU_PADDING=4, CARD_WIDTH berekend, CARD_HEIGHT=1.4×width
-- **LiquidGlassModule.swift:** Debounce pattern via `propUpdateTimer` (50ms)
 - **Game screen ModuleHeader pattern:** `showGridButton={false}` + `rightAccessory={renderGamepadButton(onBack)}`
 - **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
 - **Engines locatie:** `src/engines/{woordraad,sudoku,solitaire,memory,trivia,woordy}/`
