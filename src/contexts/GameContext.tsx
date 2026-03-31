@@ -283,14 +283,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
           // current_streak +1
           const streak = await getOrCreateStat('current_streak');
+          const currentStreakVal = streak.statValue + 1;
           streak.prepareUpdate(r => {
-            r.statValue = r.statValue + 1;
+            r.statValue = currentStreakVal;
           });
 
           // best_streak (update if current > best)
           const bestStreak = await getOrCreateStat('best_streak');
-          const currentStreakVal =
-            (await getOrCreateStat('current_streak')).statValue + 1;
           if (currentStreakVal > bestStreak.statValue) {
             bestStreak.prepareUpdate(r => {
               r.statValue = currentStreakVal;

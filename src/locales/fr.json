@@ -3063,6 +3063,7 @@
       "status_present": "mauvaise place",
       "status_absent": "pas dans le mot",
       "status_empty": "vide",
+      "attemptCounter": "Tentative {{current}} sur {{total}}",
       "download": {
         "checking": "Vérification...",
         "title": "Télécharger la liste de mots",

@@ -3062,6 +3062,7 @@
       "status_present": "falsche Stelle",
       "status_absent": "nicht im Wort",
       "status_empty": "leer",
+      "attemptCounter": "Versuch {{current}} von {{total}}",
       "download": {
         "checking": "Wird überprüft...",
         "title": "Wortliste herunterladen",

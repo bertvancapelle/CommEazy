@@ -3066,6 +3066,7 @@
       "status_present": "andere plek",
       "status_absent": "niet in woord",
       "status_empty": "leeg",
+      "attemptCounter": "Poging {{current}} van {{total}}",
       "download": {
         "checking": "Even kijken...",
         "title": "Woordenlijst downloaden",

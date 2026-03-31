@@ -2927,6 +2927,7 @@
       "status_present": "feil plass",
       "status_absent": "ikke i ordet",
       "status_empty": "tom",
+      "attemptCounter": "Forsøk {{current}} av {{total}}",
       "download": {
         "checking": "Sjekker...",
         "title": "Last ned ordliste",

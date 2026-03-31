@@ -3070,6 +3070,7 @@
       "status_present": "lugar errado",
       "status_absent": "não está na palavra",
       "status_empty": "vazio",
+      "attemptCounter": "Tentativa {{current}} de {{total}}",
       "download": {
         "checking": "A verificar...",
         "title": "Transferir lista de palavras",

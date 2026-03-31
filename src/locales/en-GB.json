@@ -3066,6 +3066,7 @@
       "status_present": "wrong spot",
       "status_absent": "not in word",
       "status_empty": "empty",
+      "attemptCounter": "Attempt {{current}} of {{total}}",
       "download": {
         "checking": "Checking...",
         "title": "Download word list",

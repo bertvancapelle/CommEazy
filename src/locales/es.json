@@ -3062,6 +3062,7 @@
       "status_present": "otro lugar",
       "status_absent": "no está en la palabra",
       "status_empty": "vacío",
+      "attemptCounter": "Intento {{current}} de {{total}}",
       "download": {
         "checking": "Comprobando...",
         "title": "Descargar lista de palabras",

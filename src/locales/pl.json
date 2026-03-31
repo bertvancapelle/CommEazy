@@ -2921,6 +2921,7 @@
       "status_present": "złe miejsce",
       "status_absent": "nie ma w słowie",
       "status_empty": "puste",
+      "attemptCounter": "Próba {{current}} z {{total}}",
       "download": {
         "checking": "Sprawdzanie...",
         "title": "Pobierz listę słów",

@@ -3004,6 +3004,7 @@
       "status_present": "posto sbagliato",
       "status_absent": "non nella parola",
       "status_empty": "vuoto",
+      "attemptCounter": "Tentativo {{current}} di {{total}}",
       "download": {
         "checking": "Controllo in corso...",
         "title": "Scarica la lista di parole",

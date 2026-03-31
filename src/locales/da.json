@@ -2897,6 +2897,7 @@
       "status_present": "forkert plads",
       "status_absent": "ikke i ordet",
       "status_empty": "tom",
+      "attemptCounter": "Forsøg {{current}} af {{total}}",
       "download": {
         "checking": "Tjekker...",
         "title": "Download ordliste",

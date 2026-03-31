@@ -2897,6 +2897,7 @@
       "status_present": "fel plats",
       "status_absent": "inte i ordet",
       "status_empty": "tom",
+      "attemptCounter": "Försök {{current}} av {{total}}",
       "download": {
         "checking": "Kontrollerar...",
         "title": "Ladda ner ordlista",

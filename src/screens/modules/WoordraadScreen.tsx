@@ -5,9 +5,10 @@
  * Color feedback per letter: green (correct), yellow (present), grey (absent).
  *
  * Senior-inclusive design — "kassabon" layout:
- * - Scrollable previous guesses zone (32pt compact tiles with color feedback)
- * - Fixed input row (52pt large tiles) always visible above keyboard
+ * - Scrollable previous guesses zone (44pt uniform tiles with color feedback)
+ * - Fixed input row (44pt uniform tiles) always visible above keyboard
  * - Fixed on-screen QWERTY keyboard (52pt keys) always visible at bottom
+ * - Row numbers (1-6) left of each row + "Poging X van 6" counter
  * - High contrast colors for feedback (green/orange/grey)
  * - All 6 guess rows + input + keyboard fit on iPhone SE without scrolling
  *
@@ -58,16 +59,13 @@ import {
 const MODULE_ID: ModuleColorId = 'woordraad' as ModuleColorId;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// Tile sizing
+// Tile sizing — uniform across all rows (kassabon + input)
 const TILE_GAP = 6;
+const TILE_SIZE = 44;
+const TILE_FONT_SIZE = 22;
 
-// Kassabon tiles — compact previous guesses (scrollable zone)
-const KASSABON_TILE_SIZE = 32;
-const KASSABON_FONT_SIZE = 18;
-
-// Input row tiles — large, focused current guess (fixed above keyboard)
-const INPUT_TILE_SIZE = 52;
-const INPUT_FONT_SIZE = 28;
+// Row number width (left of each row)
+const ROW_NUMBER_WIDTH = 24;
 
 // Keyboard layout — Dutch QWERTY
 const KEYBOARD_ROWS = [
@@ -631,6 +629,16 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
               </View>
             )}
 
+            {/* ============ ATTEMPT COUNTER ============ */}
+            <View style={styles.attemptCounter}>
+              <Text style={[styles.attemptCounterText, { color: themeColors.textSecondary }]}>
+                {t('games.woordraad.attemptCounter', {
+                  current: Math.min((gameState?.guesses.length ?? 0) + 1, MAX_GUESSES),
+                  total: MAX_GUESSES,
+                })}
+              </Text>
+            </View>
+
             {/* ============ KASSABON ZONE — scrollable previous guesses ============ */}
             <ScrollView
               ref={kassabonScrollRef}
@@ -642,74 +650,92 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
                 const result = gameState.results[rowIndex];
                 if (!result) return null;
                 return (
-                  <View key={rowIndex} style={styles.kassabonRow}>
-                    {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => (
-                      <View
-                        key={colIndex}
-                        style={[
-                          styles.kassabonTile,
-                          {
-                            backgroundColor: FEEDBACK_COLORS[result[colIndex].status],
-                            borderColor: FEEDBACK_COLORS[result[colIndex].status],
-                          },
-                        ]}
-                        accessibilityLabel={`${result[colIndex].letter}, ${t(`games.woordraad.status_${result[colIndex].status}`)}`}
-                      >
-                        <Text style={styles.kassabonLetter}>
-                          {result[colIndex].letter}
-                        </Text>
-                      </View>
-                    ))}
+                  <View key={rowIndex} style={styles.numberedRow}>
+                    <Text style={[styles.rowNumber, { color: themeColors.textTertiary }]}>
+                      {rowIndex + 1}
+                    </Text>
+                    <View style={styles.kassabonRow}>
+                      {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => (
+                        <View
+                          key={colIndex}
+                          style={[
+                            styles.kassabonTile,
+                            {
+                              backgroundColor: FEEDBACK_COLORS[result[colIndex].status],
+                              borderColor: FEEDBACK_COLORS[result[colIndex].status],
+                            },
+                          ]}
+                          accessibilityLabel={`${result[colIndex].letter}, ${t(`games.woordraad.status_${result[colIndex].status}`)}`}
+                        >
+                          <Text style={styles.kassabonLetter}>
+                            {result[colIndex].letter}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
                   </View>
                 );
               })}
 
               {/* Empty rows — show remaining unfilled rows as placeholders */}
-              {Array.from({ length: Math.max(0, MAX_GUESSES - (gameState?.guesses.length ?? 0) - 1) }).map((_, i) => (
-                <View key={`empty-${i}`} style={styles.kassabonRow}>
-                  {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => (
-                    <View
-                      key={colIndex}
-                      style={[
-                        styles.kassabonTile,
-                        {
-                          backgroundColor: 'transparent',
-                          borderColor: themeColors.border,
-                        },
-                      ]}
-                    />
-                  ))}
-                </View>
-              ))}
+              {Array.from({ length: Math.max(0, MAX_GUESSES - (gameState?.guesses.length ?? 0) - 1) }).map((_, i) => {
+                const rowNum = (gameState?.guesses.length ?? 0) + 1 + i + 1;
+                return (
+                  <View key={`empty-${i}`} style={styles.numberedRow}>
+                    <Text style={[styles.rowNumber, { color: themeColors.textTertiary }]}>
+                      {rowNum}
+                    </Text>
+                    <View style={styles.kassabonRow}>
+                      {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => (
+                        <View
+                          key={colIndex}
+                          style={[
+                            styles.kassabonTile,
+                            {
+                              backgroundColor: 'transparent',
+                              borderColor: themeColors.border,
+                            },
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                );
+              })}
             </ScrollView>
 
             {/* ============ INPUT ROW — fixed current guess ============ */}
             <View style={styles.inputRowContainer}>
-              <View style={styles.inputRow}>
-                {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => {
-                  const letter = (gameState?.currentInput ?? '')[colIndex] ?? '';
-                  return (
-                    <View
-                      key={colIndex}
-                      style={[
-                        styles.inputTile,
-                        {
-                          backgroundColor: themeColors.surface,
-                          borderColor: letter ? moduleColor : themeColors.border,
-                        },
-                      ]}
-                    >
-                      <Text
+              <View style={styles.numberedRow}>
+                <Text style={[styles.rowNumber, styles.rowNumberActive, { color: moduleColor }]}>
+                  {(gameState?.guesses.length ?? 0) + 1}
+                </Text>
+                <View style={styles.inputRow}>
+                  {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => {
+                    const letter = (gameState?.currentInput ?? '')[colIndex] ?? '';
+                    return (
+                      <View
+                        key={colIndex}
                         style={[
-                          styles.inputLetter,
-                          { color: themeColors.textPrimary },
+                          styles.inputTile,
+                          {
+                            backgroundColor: themeColors.surface,
+                            borderColor: letter ? moduleColor : themeColors.border,
+                          },
                         ]}
                       >
-                        {letter}
-                      </Text>
-                    </View>
-                  );
-                })}
+                        <Text
+                          style={[
+                            styles.inputLetter,
+                            { color: themeColors.textPrimary },
+                          ]}
+                        >
+                          {letter}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
               </View>
             </View>
 
@@ -914,6 +940,30 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: '600',
   },
+  // Attempt counter — above kassabon zone
+  attemptCounter: {
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+  attemptCounterText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  // Numbered row — row number + tiles
+  numberedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rowNumber: {
+    width: ROW_NUMBER_WIDTH,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  rowNumberActive: {
+    fontWeight: '700',
+    fontSize: 18,
+  },
   // Kassabon — scrollable previous guesses
   kassabonScroll: {
     flex: 1,
@@ -929,15 +979,15 @@ const styles = StyleSheet.create({
     gap: TILE_GAP,
   },
   kassabonTile: {
-    width: KASSABON_TILE_SIZE,
-    height: KASSABON_TILE_SIZE,
+    width: TILE_SIZE,
+    height: TILE_SIZE,
     borderRadius: borderRadius.sm,
     borderWidth: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
   },
   kassabonLetter: {
-    fontSize: KASSABON_FONT_SIZE,
+    fontSize: TILE_FONT_SIZE,
     fontWeight: '700',
     color: '#FFFFFF',
     textTransform: 'uppercase',
@@ -952,15 +1002,15 @@ const styles = StyleSheet.create({
     gap: TILE_GAP,
   },
   inputTile: {
-    width: INPUT_TILE_SIZE,
-    height: INPUT_TILE_SIZE,
+    width: TILE_SIZE,
+    height: TILE_SIZE,
     borderRadius: borderRadius.sm,
     borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
   inputLetter: {
-    fontSize: INPUT_FONT_SIZE,
+    fontSize: TILE_FONT_SIZE,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
