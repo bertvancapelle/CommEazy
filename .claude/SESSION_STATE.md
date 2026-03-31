@@ -6,19 +6,23 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-31
-- **Sessie:** Apple Music Full Player UI Freeze Fix
-- **Commit:** `f828f2b` fix(appleMusic): prevent Full Player UI freeze by eliminating playbackState re-render cascade
+- **Sessie:** Glass Player Controls + Album Playback Fix
+- **Commit:** `02ca230` fix(appleMusic): restore Glass Player controls + improve album playback reliability
 
 ## Voltooide Taken Deze Sessie
 
-1. **Apple Music Full Player UI freeze fix (3 bestanden):**
-   - **Root cause:** `playbackState` (met snel wijzigende `currentTime`) in context `useMemo` dep array veroorzaakte dat ALLE consumers elke ~0.5s re-renderen. 3 useEffects in AppleMusicScreen maakten native bridge calls op elke tick. Bij seek-to-end + track transition → MusicKit event burst → exponentiële cascade → permanente JS thread deadlock.
-   - **AppleMusicContext.tsx:** `playbackPositionRef`/`playbackDurationRef` refs (updated elke tick, geen re-renders). Event listener nu alleen `setPlaybackState` bij significante wijzigingen (status/shuffle/repeat change, positie sprong >2s). Stable getter callbacks `getPlaybackPosition()`/`getPlaybackDuration()` via context.
-   - **appleMusicContextTypes.ts:** Getter type definities toegevoegd aan `AppleMusicContextValue` interface.
-   - **AppleMusicScreen.tsx:** Glass Player Effect 2 → 2a (status push, geen playbackState dep) + 2b (1s interval polling refs). Effect 3 dependencies ontdaan van `playbackState?.currentTime/duration`. Skip handlers (`onSkipForward`/`onSkipBackward`) lezen nu positie van refs.
-   - **Design decision:** MiniPlayer/FullPlayer (iOS <26 fallback) behouden `playbackState` referenties — safe omdat Glass Player effects niet bestaan op iOS <26, en `playbackState` nu alleen update bij significante wijzigingen.
+1. **Glass Player missing controls fix (GlassPlayerWindowModule.swift):**
+   - **Root cause:** `configureControls()` bridge call werd aangeroepen VÓÓR `showMiniPlayer()` (die `ensureWindowExists()` aanroept). Optional chaining `self.glassWindow?.configureControls(controls)` evalueerde naar nil — config werd stilletjes weggegooid.
+   - **Fix:** `storedControlsConfig: NSDictionary?` property toegevoegd (volgt bestaand `storedBorderEnabled` pattern). Config wordt altijd opgeslagen, en na `ensureWindowExists()` opnieuw toegepast.
+   - **Resultaat:** Seek slider, shuffle, repeat controls nu zichtbaar in Full Player.
 
-2. **Eerdere commits (vorige sub-sessie):**
+2. **Album playback reliability fix (AppleMusicModule.swift):**
+   - **Root cause:** MusicKit catalog request vindt album maar `.tracks` property kan nil/empty zijn. Library fallback zoekt songs op exact `albumTitle` string match — faalt voor albums met lange/speciale karakters in de titel.
+   - **Fix:** Wanneer catalog album vindt maar tracks nil/empty → probeer `Queue(for: [album])` direct. Library fallback probeert ook eerst direct album queue vóór song-by-title lookup. NSLog diagnostics toegevoegd.
+   - **Resultaat:** Albums met lange/speciale titels (bijv. Rovetta: Messe pour la naissance...) spelen nu correct af.
+
+3. **Eerdere commits (zelfde dag):**
+   - `f828f2b` fix(appleMusic): prevent Full Player UI freeze by eliminating playbackState re-render cascade
    - `806a574` fix(appleMusic): add catalog→library fallback for album/playlist playback
    - `76dc6c4` fix(games): freeze timer on game completion
 
@@ -45,17 +49,17 @@
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Ref-based position tracking i.p.v. React state | Refs updaten elke tick zonder re-renders; stable getters voor consumers die real-time positie nodig hebben |
-| >2s threshold voor React state update | Filtert normale playback ticks (0.5s interval) maar vangt seeks en track transitions (>2s sprong) |
-| Glass Player effect split (2a + 2b) | 2a: instant status push (play/pause/shuffle). 2b: 1s polling interval voor positie — voorkomt native bridge flooding |
-| MiniPlayer/FullPlayer behouden playbackState | Alleen gerenderd op iOS <26 waar geen Glass Player cascade bestaat — geen fix nodig |
-| isSeeking guard SKIPPED | >2s threshold in debounce logica vangt seek-scenario's al op |
+| storedControlsConfig pattern | Volgt bestaand storedBorderEnabled/storedBorderColorHex pattern — bewezen approach in dezelfde module |
+| Queue(for: [album]) als fallback | MusicKit kan soms geen tracks resolven maar wél het album zelf queueen — meest betrouwbare fallback |
+| Direct album queue vóór song-by-title | albumTitle string match is fragiel (lange titels, speciale karakters) — direct queue is robuuster |
+| NSLog diagnostics in playAlbum | Essentieel voor debugging MusicKit issues — catalog/library pad keuze nu zichtbaar in Xcode console |
 
 ## Context voor Volgende Sessie
 
+- **GlassPlayerWindowModule.swift:** `storedControlsConfig` (line ~38), opslaan (line ~269), re-apply in `ensureWindowExists()` (line ~327)
+- **AppleMusicModule.swift:** `playAlbum()` (line ~785) — dual-path catalog→library, met Queue(for: [album]) fallback in beide paden
 - **AppleMusicContext.tsx:** `playbackPositionRef`/`playbackDurationRef` (line ~273), getters (line ~926), debounce logica (line ~276-325)
-- **AppleMusicScreen.tsx:** Effect 2a (line ~498), Effect 2b (line ~517), Effect 3 (line ~540)
-- **AppleMusicModule.swift:** `playAlbum()` (line ~785) en `playPlaylist()` (line ~850) hebben dual-path catalog→library
+- **AppleMusicScreen.tsx:** Effect 1 configureGlassControls (line ~472) → showGlassMiniPlayer (line ~483). Effect 2a (line ~498), Effect 2b (line ~517), Effect 3 (line ~540)
 - **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
 - **WatermelonDB schema:** Versie 30 (game_sessions + game_stats tabellen)
 - **XMPP game protocol:** Types gedefinieerd, hooks gebouwd, sendGameStanza is stub
