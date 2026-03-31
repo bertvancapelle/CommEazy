@@ -2018,6 +2018,7 @@
         "title": "Impossibile riprodurre il brano",
         "message": "Si è verificato un problema durante la riproduzione. Verifica il tuo abbonamento Apple Music."
       },
+      "playbackError": "Riproduzione non riuscita. Riprova.",
       "detail": {
         "topSongs": "Brani popolari",
         "albums": "Album",

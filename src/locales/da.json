@@ -1914,6 +1914,7 @@
         "title": "Kan ikke afspille sangen",
         "message": "Der opstod et problem under afspilning. Tjek dit Apple Music-abonnement."
       },
+      "playbackError": "Afspilning mislykkedes. Prøv igen.",
       "detail": {
         "topSongs": "Populære sange",
         "albums": "Album",

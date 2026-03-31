@@ -99,6 +99,7 @@ export function AppleMusicDetailModal({
   // State
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [albumDetails, setAlbumDetails] = useState<AlbumDetails | null>(null);
   const [artistDetails, setArtistDetails] = useState<ArtistDetails | null>(null);
   const [playlistDetails, setPlaylistDetails] = useState<PlaylistDetails | null>(null);
@@ -165,6 +166,7 @@ export function AppleMusicDetailModal({
 
   const handlePlayAll = useCallback(async (startIndex: number = 0) => {
     triggerFeedback('tap');
+    setPlaybackError(null);
     try {
       if (type === 'album' && albumDetails) {
         await playAlbum(albumDetails.id, startIndex);
@@ -173,8 +175,9 @@ export function AppleMusicDetailModal({
       }
     } catch (err) {
       console.error('[AppleMusicDetailModal] Play all error:', err);
+      setPlaybackError(t('modules.appleMusic.playbackError'));
     }
-  }, [type, albumDetails, playlistDetails, playAlbum, playPlaylist, triggerFeedback]);
+  }, [type, albumDetails, playlistDetails, playAlbum, playPlaylist, triggerFeedback, t]);
 
   const handleAlbumPress = useCallback((album: AppleMusicAlbum) => {
     // Could open nested album detail, but for simplicity we'll just log
@@ -388,6 +391,21 @@ export function AppleMusicDetailModal({
           </Text>
         </HapticTouchable>
 
+        {/* Playback error banner */}
+        {playbackError && (
+          <View style={styles.playbackErrorBanner}>
+            <Icon name="warning" size={20} color="#D32F2F" />
+            <Text style={[styles.playbackErrorText, { color: themeColors.textPrimary }]}>
+              {playbackError}
+            </Text>
+            <HapticTouchable hapticDisabled onPress={() => setPlaybackError(null)} style={styles.playbackErrorDismiss}>
+              <Text style={[styles.playbackErrorDismissText, { color: appleMusicColor }]}>
+                {t('common.dismiss')}
+              </Text>
+            </HapticTouchable>
+          </View>
+        )}
+
         {/* Tracks */}
         <View style={styles.section}>
           {albumDetails.tracks.map((song, index) => renderSongItem(song, index, true))}
@@ -443,6 +461,21 @@ export function AppleMusicDetailModal({
             {t('modules.appleMusic.detail.playAll')}
           </Text>
         </HapticTouchable>
+
+        {/* Playback error banner */}
+        {playbackError && (
+          <View style={styles.playbackErrorBanner}>
+            <Icon name="warning" size={20} color="#D32F2F" />
+            <Text style={[styles.playbackErrorText, { color: themeColors.textPrimary }]}>
+              {playbackError}
+            </Text>
+            <HapticTouchable hapticDisabled onPress={() => setPlaybackError(null)} style={styles.playbackErrorDismiss}>
+              <Text style={[styles.playbackErrorDismissText, { color: appleMusicColor }]}>
+                {t('common.dismiss')}
+              </Text>
+            </HapticTouchable>
+          </View>
+        )}
 
         {/* Tracks */}
         <View style={styles.section}>
@@ -728,6 +761,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   retryText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+
+  // Playback error banner
+  playbackErrorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    gap: spacing.sm,
+  },
+  playbackErrorText: {
+    ...typography.body,
+    flex: 1,
+  },
+  playbackErrorDismiss: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+  playbackErrorDismissText: {
     ...typography.body,
     fontWeight: '600',
   },

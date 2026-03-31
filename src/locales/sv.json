@@ -1914,6 +1914,7 @@
         "title": "Kan inte spela låten",
         "message": "Det uppstod ett problem vid uppspelning. Kontrollera ditt Apple Music-abonnemang."
       },
+      "playbackError": "Uppspelning misslyckades. Försök igen.",
       "detail": {
         "topSongs": "Populära låtar",
         "albums": "Album",

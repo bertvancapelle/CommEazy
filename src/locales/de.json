@@ -2070,6 +2070,7 @@
         "title": "Titel kann nicht abgespielt werden",
         "message": "Bei der Wiedergabe ist ein Problem aufgetreten. Bitte überprüfe dein Apple Music Abo."
       },
+      "playbackError": "Wiedergabe fehlgeschlagen. Bitte versuche es erneut.",
       "detail": {
         "topSongs": "Top-Songs",
         "albums": "Alben",

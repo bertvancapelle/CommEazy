@@ -1876,6 +1876,7 @@
         "title": "Nie można odtworzyć utworu",
         "message": "Wystąpił problem z odtwarzaniem. Sprawdź swoją subskrypcję Apple Music."
       },
+      "playbackError": "Odtwarzanie nie powiodło się. Spróbuj ponownie.",
       "detail": {
         "topSongs": "Popularne utwory",
         "albums": "Albumy",

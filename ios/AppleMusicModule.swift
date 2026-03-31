@@ -781,28 +781,54 @@ class AppleMusicModule: RCTEventEmitter, @unchecked Sendable {
     }
 
     /// Play an album by ID
+    /// Tries catalog first, then falls back to library (matches getAlbumDetails dual-path)
     @objc
     func playAlbum(_ albumId: String,
                    startIndex: Int,
                    resolve: @escaping RCTPromiseResolveBlock,
                    reject: @escaping RCTPromiseRejectBlock) {
         Task {
+            // Try catalog first
             do {
-                // Fetch the album with tracks
                 var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: MusicItemID(albumId))
                 request.properties = [.tracks]
                 let response = try await request.response()
                 
-                guard let album = response.items.first,
-                      let tracks = album.tracks else {
-                    reject("ALBUM_NOT_FOUND", "Album with ID \(albumId) not found", nil)
+                if let album = response.items.first, let tracks = album.tracks, !tracks.isEmpty {
+                    player.queue = ApplicationMusicPlayer.Queue(for: tracks, startingAt: tracks[safe: startIndex])
+                    try await player.play()
+                    resolve(["success": true])
+                    return
+                }
+            } catch {
+                NSLog("[AppleMusicModule] Catalog playAlbum failed, trying library: \(error.localizedDescription)")
+            }
+            
+            // Fallback to library
+            do {
+                var libraryRequest = MusicLibraryRequest<Album>()
+                libraryRequest.filter(matching: \.id, equalTo: MusicItemID(albumId))
+                let libraryResponse = try await libraryRequest.response()
+                
+                guard let album = libraryResponse.items.first else {
+                    reject("ALBUM_NOT_FOUND", "Album with ID \(albumId) not found in catalog or library", nil)
                     return
                 }
                 
-                // Set queue with all tracks
-                player.queue = ApplicationMusicPlayer.Queue(for: tracks, startingAt: tracks[safe: startIndex])
-                try await player.play()
+                // Fetch songs for this library album by title
+                var songsRequest = MusicLibraryRequest<Song>()
+                songsRequest.filter(matching: \.albumTitle, equalTo: album.title)
+                songsRequest.sort(by: \.trackNumber, ascending: true)
+                let songsResponse = try await songsRequest.response()
+                let songs = Array(songsResponse.items)
                 
+                guard !songs.isEmpty else {
+                    reject("ALBUM_EMPTY", "Album '\(album.title)' has no playable tracks in library", nil)
+                    return
+                }
+                
+                player.queue = ApplicationMusicPlayer.Queue(for: songs, startingAt: songs[safe: startIndex])
+                try await player.play()
                 resolve(["success": true])
             } catch {
                 reject("PLAY_ERROR", "Failed to play album: \(error.localizedDescription)", error)
@@ -811,28 +837,43 @@ class AppleMusicModule: RCTEventEmitter, @unchecked Sendable {
     }
 
     /// Play a playlist by ID
+    /// Tries catalog first, then falls back to library (matches dual-path pattern)
     @objc
     func playPlaylist(_ playlistId: String,
                       startIndex: Int,
                       resolve: @escaping RCTPromiseResolveBlock,
                       reject: @escaping RCTPromiseRejectBlock) {
         Task {
+            // Try catalog first
             do {
-                // Fetch the playlist with tracks
                 var request = MusicCatalogResourceRequest<Playlist>(matching: \.id, equalTo: MusicItemID(playlistId))
                 request.properties = [.tracks]
                 let response = try await request.response()
                 
-                guard let playlist = response.items.first,
-                      let tracks = playlist.tracks else {
-                    reject("PLAYLIST_NOT_FOUND", "Playlist with ID \(playlistId) not found", nil)
+                if let playlist = response.items.first, let tracks = playlist.tracks, !tracks.isEmpty {
+                    player.queue = ApplicationMusicPlayer.Queue(for: tracks, startingAt: tracks[safe: startIndex])
+                    try await player.play()
+                    resolve(["success": true])
+                    return
+                }
+            } catch {
+                NSLog("[AppleMusicModule] Catalog playPlaylist failed, trying library: \(error.localizedDescription)")
+            }
+            
+            // Fallback to library
+            do {
+                var libraryRequest = MusicLibraryRequest<Playlist>()
+                libraryRequest.filter(matching: \.id, equalTo: MusicItemID(playlistId))
+                let libraryResponse = try await libraryRequest.response()
+                
+                guard let playlist = libraryResponse.items.first else {
+                    reject("PLAYLIST_NOT_FOUND", "Playlist with ID \(playlistId) not found in catalog or library", nil)
                     return
                 }
                 
-                // Set queue with all tracks
-                player.queue = ApplicationMusicPlayer.Queue(for: tracks, startingAt: tracks[safe: startIndex])
+                // Queue the library playlist directly
+                player.queue = ApplicationMusicPlayer.Queue(for: [playlist])
                 try await player.play()
-                
                 resolve(["success": true])
             } catch {
                 reject("PLAY_ERROR", "Failed to play playlist: \(error.localizedDescription)", error)

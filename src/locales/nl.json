@@ -2080,6 +2080,7 @@
         "title": "Kan nummer niet afspelen",
         "message": "Er is een probleem met het afspelen van dit nummer. Controleer je Apple Music abonnement."
       },
+      "playbackError": "Afspelen mislukt. Probeer het opnieuw.",
       "detail": {
         "topSongs": "Populaire nummers",
         "albums": "Albums",

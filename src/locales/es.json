@@ -2070,6 +2070,7 @@
         "title": "No se puede reproducir la canción",
         "message": "Hubo un problema al reproducir esta canción. Por favor, verifica tu suscripción de Apple Music."
       },
+      "playbackError": "Error de reproducción. Inténtalo de nuevo.",
       "detail": {
         "topSongs": "Canciones populares",
         "albums": "Álbumes",

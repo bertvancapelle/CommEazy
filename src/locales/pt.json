@@ -2087,6 +2087,7 @@
         "title": "Não é possível reproduzir a música",
         "message": "Ocorreu um problema ao reproduzir esta música. Verifique a sua subscrição Apple Music."
       },
+      "playbackError": "Falha na reprodução. Tente novamente.",
       "detail": {
         "topSongs": "Músicas populares",
         "albums": "Álbuns",

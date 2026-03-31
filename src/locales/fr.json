@@ -2070,6 +2070,7 @@
         "title": "Impossible de lire le morceau",
         "message": "Un problème est survenu lors de la lecture. Veuillez vérifier votre abonnement Apple Music."
       },
+      "playbackError": "Échec de la lecture. Veuillez réessayer.",
       "detail": {
         "topSongs": "Titres populaires",
         "albums": "Albums",

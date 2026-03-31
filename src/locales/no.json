@@ -1944,6 +1944,7 @@
         "title": "Kan ikke spille sangen",
         "message": "Det oppstod et problem med avspillingen. Vennligst sjekk Apple Music-abonnementet ditt."
       },
+      "playbackError": "Avspilling mislyktes. Prøv igjen.",
       "detail": {
         "topSongs": "Populære sanger",
         "albums": "Album",

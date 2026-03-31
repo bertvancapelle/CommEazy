@@ -2085,6 +2085,7 @@
         "title": "Cannot play song",
         "message": "There was a problem playing this song. Please check your Apple Music subscription."
       },
+      "playbackError": "Playback failed. Please try again.",
       "detail": {
         "topSongs": "Top songs",
         "albums": "Albums",
