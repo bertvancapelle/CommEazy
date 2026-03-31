@@ -134,11 +134,16 @@ export function useGameSession({
     async (finalScore: number, won: boolean): Promise<void> => {
       if (!session) return;
       stopTimer();
-      await completeSession(session.id, finalScore, durationSeconds, won);
+      // Capture current duration before any async work
+      const finalDuration = baseDurationRef.current +
+        Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setDurationSeconds(finalDuration);
+      await completeSession(session.id, finalScore, finalDuration, won);
       setSession(null);
-      setDurationSeconds(0);
+      // Don't reset durationSeconds here — keep it so GameOverModal shows the final time.
+      // It gets reset in startSession() when a new game begins.
     },
-    [session, completeSession, durationSeconds, stopTimer],
+    [session, completeSession, stopTimer],
   );
 
   const abandonGame = useCallback(async (): Promise<void> => {

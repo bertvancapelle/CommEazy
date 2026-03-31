@@ -14,7 +14,7 @@
  * @see .claude/plans/WOORDY_DESIGN.md
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -220,19 +220,20 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
     );
   }, [t]);
 
-  const handleGameOverClose = useCallback(() => {
-    if (gameState) {
+  // Complete the session as soon as the game ends (stop timer immediately)
+  useEffect(() => {
+    if (gameState?.isComplete && showGameOver) {
       const winner = getWinner(gameState);
-      completeGame(
-        winner === 'player',
-        gameState.player.score,
-        serializeState(gameState),
-      );
+      completeGame(gameState.player.score, winner === 'player');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState?.isComplete, showGameOver]);
+
+  const handleGameOverClose = useCallback(() => {
     setShowGameOver(false);
     setPhase('menu');
     setGameState(null);
-  }, [gameState, completeGame]);
+  }, []);
 
   // ============================================================
   // Score preview

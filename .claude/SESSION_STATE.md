@@ -6,17 +6,21 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-31
-- **Sessie:** Games Session 13 — Solitaire auto-move feature
-- **Commit:** `eefe409` feat(solitaire): add auto-move setting — single tap places card at best position
+- **Sessie:** Games Session 14 — GameOverModal animation fixes
+- **Commit:** `d050012` fix(games): fix invisible animations + add snowfall loss effect + remove icon circle
 
 ## Voltooide Taken Deze Sessie
 
-1. **Solitaire auto-move setting:**
-   - **Engine:** `findBestMoveForCard()` in `src/engines/solitaire/engine.ts`
-     - Priority: Foundation first (single cards only), then Tableau scored by: reveals face-down (+100), non-empty column (+10), column length (+length)
-   - **SolitaireScreen:** Toggle in menu (default: ON), single-tap handler, flash animation (opacity blink) when no valid move
-   - **AsyncStorage:** Persisted at `@commeazy/solitaire_autoMove`
-   - **i18n:** `autoMove` key in all 13 locales
+1. **GameOverModal animation fixes (3 bugs + 2 UX wijzigingen):**
+   - **Bug 1:** Confetti translateY double multiplication (`startY * SCREEN_HEIGHT` maar startY was al `particle.y * SCREEN_HEIGHT`) — particles op -72.000px
+   - **Bug 2:** CelebrationAnimation gerenderd VOOR backdrop in z-order — backdrop dekte animatie volledig af
+   - **Bug 3:** Animation alleen geactiveerd op win (`active={visible && isWon}`) — loss had geen animatie
+   - **UX 1:** Snowfall animatie toegevoegd voor verlies — langzaam dalende sneeuwvlokken in gedempte grijstinten
+   - **UX 2:** Decoratief 64pt icoon-cirkel (ster/kruis) verwijderd — verwarrend voor senioren
+
+2. **Woordraad UI improvements (vorige sub-sessie, commit `35db4cf`):**
+   - Uniforme 44pt tiles, rijnummers, pogingsteller
+   - WatermelonDB "pending changes" fix in GameContext.tsx
 
 ## Openstaande Taken
 
@@ -51,18 +55,15 @@
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Auto-move default ON | Senioren profiteren van single-tap UX — minder complexe interactie |
-| Foundation > Tableau prioriteit | Foundation is altijd de beste zet; Tableau scoring weegt face-down reveal het zwaarst |
-| Flash animatie bij geen zet | Visuele feedback zonder error-tekst — subtiel en niet storend |
-| Custom toggle i.p.v. Switch | Consistente stijl met module kleur op alle platforms |
+| Snowfall voor verlies-animatie | Visueel onderscheidend van win (dalend vs stijgend), muted kleuren passen bij "game over" |
+| Icoon-cirkel verwijderd | 64pt cirkel met ster/kruis deed niets bij tik — verwarrend voor senioren, navigatieknoppen zijn voldoende |
+| CelebrationAnimation NA backdrop renderen | Z-order fix — animatie moet BOVEN backdrop maar ONDER card verschijnen |
+| Loss animatie langzamer (3500ms vs 2500ms) | Sneeuwvlokken moeten langzaam en sereen dalen, niet gehaast |
 
 ## Context voor Volgende Sessie
 
-- **Auto-move engine:** `findBestMoveForCard()` in `src/engines/solitaire/engine.ts` (rond regel 520)
-- **Auto-move UI:** Toggle in menu fase van `SolitaireScreen.tsx`, state `autoMoveEnabled`
-- **Flash animation:** `flashAnim` (Animated.Value), `flashLocation` state, `triggerFlash()` callback
-- **Card image assets:** `src/assets/cards/*.png` (52 bestanden) + `src/assets/cards/index.ts` (lookup map)
-- **CardView:** Simpel — `<Image source={getCardImage(suit, rank)}>` met hint/selectie border
+- **CelebrationAnimation:** `src/components/games/CelebrationAnimation.tsx` — 6 types (5 win + snowfall loss)
+- **GameOverModal:** `src/components/games/GameOverModal.tsx` — geen icon circle meer, title is nu eerste element
 - **Game screen ModuleHeader pattern:** `showGridButton={false}` + `rightAccessory={renderGamepadButton(onBack)}`
 - **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
 - **Engines locatie:** `src/engines/{woordraad,sudoku,solitaire,memory,trivia,woordy}/`
