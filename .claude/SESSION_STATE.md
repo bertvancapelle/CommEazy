@@ -5,26 +5,43 @@
 
 ## Laatste Update
 
-- **Datum:** 2026-03-31
-- **Sessie:** Glass Player Controls + Album Playback Fix
-- **Commit:** `02ca230` fix(appleMusic): restore Glass Player controls + improve album playback reliability
+- **Datum:** 2026-04-01
+- **Sessie:** Woordy Improvements + GameHeader Compact Mode
+- **Commit:** `f844c5b` feat(games): add Woordy fullscreen board, tile swap, compact timer + hide trivia fields
 
 ## Voltooide Taken Deze Sessie
 
-1. **Glass Player missing controls fix (GlassPlayerWindowModule.swift):**
-   - **Root cause:** `configureControls()` bridge call werd aangeroepen VÓÓR `showMiniPlayer()` (die `ensureWindowExists()` aanroept). Optional chaining `self.glassWindow?.configureControls(controls)` evalueerde naar nil — config werd stilletjes weggegooid.
-   - **Fix:** `storedControlsConfig: NSDictionary?` property toegevoegd (volgt bestaand `storedBorderEnabled` pattern). Config wordt altijd opgeslagen, en na `ensureWindowExists()` opnieuw toegepast.
-   - **Resultaat:** Seek slider, shuffle, repeat controls nu zichtbaar in Full Player.
+1. **GameHeader compact mode (GameHeader.tsx):**
+   - Wanneer alleen timer getoond wordt (geen score, geen actions), rendeert als slanke single-line bar (~26pt i.p.v. ~56pt)
+   - Compact mode: clock icon + geformatteerde tijd, gecentreerd
+   - Automatisch actief in Woordy en Sudoku (games die alleen timer tonen)
 
-2. **Album playback reliability fix (AppleMusicModule.swift):**
-   - **Root cause:** MusicKit catalog request vindt album maar `.tracks` property kan nil/empty zijn. Library fallback zoekt songs op exact `albumTitle` string match — faalt voor albums met lange/speciale karakters in de titel.
-   - **Fix:** Wanneer catalog album vindt maar tracks nil/empty → probeer `Queue(for: [album])` direct. Library fallback probeert ook eerst direct album queue vóór song-by-title lookup. NSLog diagnostics toegevoegd.
-   - **Resultaat:** Albums met lange/speciale titels (bijv. Rovetta: Messe pour la naissance...) spelen nu correct af.
+2. **Woordy fullscreen board (WoordyScreen.tsx):**
+   - Expand button rechtsonder op het inline board (semi-transparant, moduleColor)
+   - Modal met fullscreen board: `FULL_CELL_SIZE` berekend op basis van schermbreedte
+   - Contract button om terug te gaan naar inline weergave
+   - `renderCell()` gerefactored: accepteert dynamisch `cellSize` parameter, inline styles i.p.v. StyleSheet
 
-3. **Eerdere commits (zelfde dag):**
-   - `f828f2b` fix(appleMusic): prevent Full Player UI freeze by eliminating playbackState re-render cascade
-   - `806a574` fix(appleMusic): add catalog→library fallback for album/playlist playback
-   - `76dc6c4` fix(games): freeze timer on game completion
+3. **Woordy tile swap feature (WoordyScreen.tsx):**
+   - "Ruilen" knop in action bar (alleen zichtbaar als bag nog tegels heeft en geen pending tiles op board)
+   - Swap mode: tik op rack-tegels om ze te selecteren (rood gemarkeerd)
+   - Bevestig swap → geselecteerde tegels terug naar bag, nieuwe tegels getrokken
+   - Annuleer om swap mode te verlaten
+   - Gebruikt bestaande `swapTiles()` engine functie (engine.ts:439-490)
+
+4. **Woordy trivia fields verborgen (WoordyScreen.tsx):**
+   - Trivia velden (`fieldType === 'trivia'`) worden nu als 'normal' gerenderd totdat `triviaRevealed === true`
+   - Geen gele vakken meer zichtbaar vóór activatie
+   - Na activatie (woord geplaatst op trivia veld): amber kleur + '?' label verschijnt
+
+5. **i18n keys toegevoegd (13 talen):**
+   - `games.woordy.swap` — "Ruilen" / "Swap" / "Tauschen" / etc.
+   - `games.woordy.swapHint` — "Tik op tegels om te ruilen" / etc.
+   - `games.woordy.swapConfirm` — "Ruil" / "Swap" / etc.
+   - `games.woordy.fullscreen` — "Beeldvullend" / "Fullscreen" / etc.
+
+6. **Code hygiene:**
+   - Verwijderd: `cell`, `cellLetter`, `cellValue`, `fieldLabel` styles (vervangen door inline styles met dynamische sizing)
 
 ## Openstaande Taken
 
@@ -49,17 +66,17 @@
 
 | Beslissing | Rationale |
 |------------|-----------|
-| storedControlsConfig pattern | Volgt bestaand storedBorderEnabled/storedBorderColorHex pattern — bewezen approach in dezelfde module |
-| Queue(for: [album]) als fallback | MusicKit kan soms geen tracks resolven maar wél het album zelf queueen — meest betrouwbare fallback |
-| Direct album queue vóór song-by-title | albumTitle string match is fragiel (lange titels, speciale karakters) — direct queue is robuuster |
-| NSLog diagnostics in playAlbum | Essentieel voor debugging MusicKit issues — catalog/library pad keuze nu zichtbaar in Xcode console |
+| GameHeader compact mode als early-return | Eenvoudiger dan conditionele styling, duidelijk gescheiden code path |
+| renderCell met dynamisch cellSize parameter | Hergebruik voor inline (38pt) en fullscreen (berekend) zonder code duplicatie |
+| Trivia fields verborgen als 'normal' | Mapping in render laag, engine data ongewijzigd — cleanste scheiding |
+| Swap alleen beschikbaar zonder pending tiles | Voorkomt verwarrende UX: tiles op board + tiles ruilen tegelijk |
+| `shuffle` icon voor swap | Geen dedicated swap-icon beschikbaar, shuffle communiceert "wisselen" goed genoeg |
 
 ## Context voor Volgende Sessie
 
-- **GlassPlayerWindowModule.swift:** `storedControlsConfig` (line ~38), opslaan (line ~269), re-apply in `ensureWindowExists()` (line ~327)
-- **AppleMusicModule.swift:** `playAlbum()` (line ~785) — dual-path catalog→library, met Queue(for: [album]) fallback in beide paden
-- **AppleMusicContext.tsx:** `playbackPositionRef`/`playbackDurationRef` (line ~273), getters (line ~926), debounce logica (line ~276-325)
-- **AppleMusicScreen.tsx:** Effect 1 configureGlassControls (line ~472) → showGlassMiniPlayer (line ~483). Effect 2a (line ~498), Effect 2b (line ~517), Effect 3 (line ~540)
+- **GameHeader.tsx:** Compact mode (line 74-86), `isCompact` conditie, `compactContainer`/`compactTimer` styles
+- **WoordyScreen.tsx:** Fullscreen modal (`renderFullscreenBoard`, line ~455), swap handlers (line ~235-267), swap mode in renderRack (line ~508), swap button in renderActions (line ~635)
+- **Engine swapTiles:** `engine.ts:439-490` — accepteert state + array of tileIds
 - **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
 - **WatermelonDB schema:** Versie 30 (game_sessions + game_stats tabellen)
 - **XMPP game protocol:** Types gedefinieerd, hooks gebouwd, sendGameStanza is stub
