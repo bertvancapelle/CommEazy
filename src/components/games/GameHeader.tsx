@@ -71,6 +71,20 @@ export function GameHeader({
   const themeColors = useColors();
   const moduleColor = useModuleColor(moduleId);
 
+  // Compact mode: only timer, no score, no actions → slim single-line bar
+  const isCompact = showTimer && score === undefined && actions.length === 0;
+
+  if (isCompact && timer !== undefined) {
+    return (
+      <View style={[styles.compactContainer, { borderBottomColor: themeColors.border }]}>
+        <Icon name="time" size={16} color={themeColors.textSecondary} />
+        <Text style={[styles.compactTimer, { color: themeColors.textSecondary }]}>
+          {formatTimer(timer)}
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { borderBottomColor: themeColors.border }]}>
       {/* Left: Score & Timer */}
@@ -134,6 +148,18 @@ export function GameHeader({
 // ============================================================
 
 const styles = StyleSheet.create({
+  compactContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    gap: 4,
+  },
+  compactTimer: {
+    ...typography.label,
+    fontSize: 14,
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -15,7 +15,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Modal, Dimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { spacing, borderRadius, touchTargets, typography, colors as themeConst } from '@/theme';
@@ -34,6 +34,7 @@ import {
   removePendingTile,
   confirmPlacement,
   passTurn,
+  swapTiles,
   resignGame,
   validatePlacement,
   previewScore,
@@ -53,6 +54,10 @@ const MODULE_ID: ModuleColorId = 'woordy' as ModuleColorId;
 
 const CELL_SIZE = 38;
 const RACK_TILE_SIZE = 48;
+
+/** Fullscreen board fills screen width */
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const FULL_CELL_SIZE = Math.floor((SCREEN_WIDTH - spacing.md * 2) / BOARD_SIZE);
 
 /** Colors for bonus fields */
 const BONUS_COLORS: Record<string, string> = {
@@ -95,6 +100,9 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
   const [phase, setPhase] = useState<GamePhase>('menu');
   const [gameState, setGameState] = useState<WoordyState | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [showFullscreen, setShowFullscreen] = useState(false);
+  const [swapMode, setSwapMode] = useState(false);
+  const [swapSelection, setSwapSelection] = useState<Set<string>>(new Set());
 
   // ============================================================
   // Game Actions
@@ -220,6 +228,44 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
     );
   }, [t]);
 
+  // ============================================================
+  // Swap Tiles
+  // ============================================================
+
+  const handleToggleSwapMode = useCallback(() => {
+    if (swapMode) {
+      // Exit swap mode
+      setSwapMode(false);
+      setSwapSelection(new Set());
+    } else {
+      // Enter swap mode — clear any pending board tiles first
+      setSwapMode(true);
+      setSwapSelection(new Set());
+    }
+  }, [swapMode]);
+
+  const handleToggleSwapTile = useCallback((tileId: string) => {
+    setSwapSelection((prev) => {
+      const next = new Set(prev);
+      if (next.has(tileId)) {
+        next.delete(tileId);
+      } else {
+        next.add(tileId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleConfirmSwap = useCallback(() => {
+    if (swapSelection.size === 0) return;
+    setGameState((prev) => {
+      if (!prev) return prev;
+      return swapTiles(prev, Array.from(swapSelection));
+    });
+    setSwapMode(false);
+    setSwapSelection(new Set());
+  }, [swapSelection]);
+
   // Complete the session as soon as the game ends (stop timer immediately)
   useEffect(() => {
     if (gameState?.isComplete && showGameOver) {
@@ -301,20 +347,34 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
   // Render: Board
   // ============================================================
 
-  const renderCell = (cell: BoardCell, row: number, col: number) => {
-    const isSelected = false; // Could highlight target cells
+  const renderCell = (cell: BoardCell, row: number, col: number, cellSize = CELL_SIZE) => {
     const hasTile = cell.tile !== null;
     const isPending = hasTile && cell.tile!.isCurrentTurn;
+
+    // Trivia fields: hidden until revealed (appear as normal cells)
+    const visibleFieldType = cell.fieldType === 'trivia' && !cell.triviaRevealed
+      ? 'normal'
+      : cell.fieldType;
     const fieldColor = cell.triviaRevealed
       ? BONUS_COLORS.trivia
-      : BONUS_COLORS[cell.fieldType] ?? BONUS_COLORS.normal;
+      : BONUS_COLORS[visibleFieldType] ?? BONUS_COLORS.normal;
+
+    const fontSize = cellSize >= 24 ? Math.max(10, Math.round(cellSize * 0.37)) : 10;
+    const valueSize = Math.max(7, Math.round(cellSize * 0.21));
+    const labelSize = Math.max(8, Math.round(cellSize * 0.26));
 
     return (
       <HapticTouchable
         key={`${row}-${col}`}
         style={[
-          styles.cell,
           {
+            width: cellSize,
+            height: cellSize,
+            justifyContent: 'center' as const,
+            alignItems: 'center' as const,
+            borderWidth: 0.5,
+            borderRadius: 2,
+            margin: cellSize >= FULL_CELL_SIZE ? 0.25 : 0.5,
             backgroundColor: hasTile
               ? (isPending ? moduleColor : themeColors.surface)
               : fieldColor !== 'transparent'
@@ -330,7 +390,7 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
           <View style={styles.cellContent}>
             <Text
               style={[
-                styles.cellLetter,
+                { fontSize, fontWeight: '700' as const },
                 { color: isPending ? '#FFFFFF' : themeColors.textPrimary },
               ]}
             >
@@ -339,7 +399,7 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
             {cell.tile!.value > 0 && (
               <Text
                 style={[
-                  styles.cellValue,
+                  { fontSize: valueSize, fontWeight: '500' as const, position: 'absolute' as const, bottom: -2, right: -4 },
                   { color: isPending ? 'rgba(255,255,255,0.7)' : themeColors.textTertiary },
                 ]}
               >
@@ -347,9 +407,9 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
               </Text>
             )}
           </View>
-        ) : cell.fieldType !== 'normal' && cell.fieldType !== 'trivia' ? (
-          <Text style={styles.fieldLabel}>
-            {cell.fieldType === 'center' ? '★' : cell.fieldType}
+        ) : visibleFieldType !== 'normal' ? (
+          <Text style={{ fontSize: labelSize, fontWeight: '700' as const, color: '#FFFFFF', textAlign: 'center' as const }}>
+            {visibleFieldType === 'center' ? '★' : visibleFieldType === 'trivia' ? '?' : visibleFieldType}
           </Text>
         ) : null}
       </HapticTouchable>
@@ -360,24 +420,78 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
     if (!gameState) return null;
 
     return (
-      <ScrollView
-        style={styles.boardScrollH}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      >
+      <View style={{ flex: 1 }}>
         <ScrollView
-          style={styles.boardScrollV}
-          showsVerticalScrollIndicator={false}
+          style={styles.boardScrollH}
+          horizontal
+          showsHorizontalScrollIndicator={false}
         >
-          <View style={styles.boardContainer}>
-            {gameState.board.map((row, rowIdx) => (
-              <View key={rowIdx} style={styles.boardRow}>
-                {row.map((cell, colIdx) => renderCell(cell, rowIdx, colIdx))}
-              </View>
-            ))}
-          </View>
+          <ScrollView
+            style={styles.boardScrollV}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.boardContainer}>
+              {gameState.board.map((row, rowIdx) => (
+                <View key={rowIdx} style={styles.boardRow}>
+                  {row.map((cell, colIdx) => renderCell(cell, rowIdx, colIdx))}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
         </ScrollView>
-      </ScrollView>
+
+        {/* Fullscreen expand button */}
+        <HapticTouchable
+          style={[styles.expandButton, { backgroundColor: moduleColor + '33' }]}
+          onPress={() => setShowFullscreen(true)}
+          accessibilityLabel={t('games.woordy.fullscreen')}
+        >
+          <Icon name="expand" size={20} color={moduleColor} />
+        </HapticTouchable>
+      </View>
+    );
+  };
+
+  const renderFullscreenBoard = () => {
+    if (!gameState) return null;
+
+    return (
+      <Modal
+        visible={showFullscreen}
+        animationType="fade"
+        transparent={false}
+        onRequestClose={() => setShowFullscreen(false)}
+      >
+        <View style={[styles.fullscreenContainer, { backgroundColor: themeColors.background }]}>
+          {/* Close button */}
+          <View style={styles.fullscreenHeader}>
+            <HapticTouchable
+              style={[styles.fullscreenCloseButton, { backgroundColor: moduleColor + '33' }]}
+              onPress={() => setShowFullscreen(false)}
+              accessibilityLabel={t('common.close')}
+            >
+              <Icon name="contract" size={24} color={moduleColor} />
+            </HapticTouchable>
+          </View>
+
+          {/* Full-width board */}
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.fullscreenBoardContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.fullscreenBoardContainer}>
+              {gameState.board.map((row, rowIdx) => (
+                <View key={rowIdx} style={styles.boardRow}>
+                  {row.map((cell, colIdx) =>
+                    renderCell(cell, rowIdx, colIdx, FULL_CELL_SIZE),
+                  )}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     );
   };
 
@@ -391,55 +505,60 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
 
     return (
       <View style={styles.rackContainer}>
+        {swapMode && (
+          <Text style={[styles.swapHint, { color: moduleColor }]}>
+            {t('games.woordy.swapHint')}
+          </Text>
+        )}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rackScroll}>
-          {rack.map((tile: Tile) => (
-            <HapticTouchable
-              key={tile.id}
-              style={[
-                styles.rackTile,
-                {
-                  backgroundColor:
-                    gameState.selectedTileId === tile.id
-                      ? moduleColor
-                      : themeColors.surface,
-                  borderColor:
-                    gameState.selectedTileId === tile.id
-                      ? '#FFFFFF'
-                      : themeColors.border,
-                },
-              ]}
-              onPress={() => handleSelectRackTile(tile.id)}
-            >
-              <Text
+          {rack.map((tile: Tile) => {
+            const isSelected = swapMode
+              ? swapSelection.has(tile.id)
+              : gameState.selectedTileId === tile.id;
+
+            return (
+              <HapticTouchable
+                key={tile.id}
                 style={[
-                  styles.rackLetter,
+                  styles.rackTile,
                   {
-                    color:
-                      gameState.selectedTileId === tile.id
-                        ? '#FFFFFF'
-                        : themeColors.textPrimary,
+                    backgroundColor: isSelected ? moduleColor : themeColors.surface,
+                    borderColor: isSelected
+                      ? (swapMode ? themeColors.error : '#FFFFFF')
+                      : themeColors.border,
                   },
                 ]}
+                onPress={() =>
+                  swapMode
+                    ? handleToggleSwapTile(tile.id)
+                    : handleSelectRackTile(tile.id)
+                }
               >
-                {tile.isBlank ? '★' : tile.letter}
-              </Text>
-              {tile.value > 0 && (
                 <Text
                   style={[
-                    styles.rackValue,
-                    {
-                      color:
-                        gameState.selectedTileId === tile.id
-                          ? 'rgba(255,255,255,0.7)'
-                          : themeColors.textTertiary,
-                    },
+                    styles.rackLetter,
+                    { color: isSelected ? '#FFFFFF' : themeColors.textPrimary },
                   ]}
                 >
-                  {tile.value}
+                  {tile.isBlank ? '★' : tile.letter}
                 </Text>
-              )}
-            </HapticTouchable>
-          ))}
+                {tile.value > 0 && (
+                  <Text
+                    style={[
+                      styles.rackValue,
+                      {
+                        color: isSelected
+                          ? 'rgba(255,255,255,0.7)'
+                          : themeColors.textTertiary,
+                      },
+                    ]}
+                  >
+                    {tile.value}
+                  </Text>
+                )}
+              </HapticTouchable>
+            );
+          })}
         </ScrollView>
       </View>
     );
@@ -453,6 +572,40 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
     if (!gameState || gameState.currentTurn !== 'player') return null;
 
     const hasPending = gameState.pendingTiles.length > 0;
+    const canSwap = gameState.letterBag.length > 0;
+
+    // Swap mode: show confirm/cancel swap buttons
+    if (swapMode) {
+      return (
+        <View style={styles.actionsContainer}>
+          <View style={styles.actionRow}>
+            <HapticTouchable
+              style={[styles.actionButton, {
+                backgroundColor: swapSelection.size > 0 ? moduleColor : themeColors.surfaceVariant,
+              }]}
+              onPress={handleConfirmSwap}
+              disabled={swapSelection.size === 0}
+            >
+              <Icon name="check" size={24} color={swapSelection.size > 0 ? '#FFFFFF' : themeColors.textTertiary} />
+              <Text style={[styles.actionButtonText, {
+                color: swapSelection.size > 0 ? '#FFFFFF' : themeColors.textTertiary,
+              }]}>
+                {t('games.woordy.swapConfirm')} ({swapSelection.size})
+              </Text>
+            </HapticTouchable>
+
+            <HapticTouchable
+              style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border, borderWidth: 1 }]}
+              onPress={handleToggleSwapMode}
+            >
+              <Text style={[styles.actionButtonText, { color: themeColors.textPrimary }]}>
+                {t('common.cancel')}
+              </Text>
+            </HapticTouchable>
+          </View>
+        </View>
+      );
+    }
 
     return (
       <View style={styles.actionsContainer}>
@@ -474,6 +627,19 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
               <Icon name="check" size={24} color="#FFFFFF" />
               <Text style={styles.actionButtonText}>
                 {t('games.woordy.confirm')}
+              </Text>
+            </HapticTouchable>
+          )}
+
+          {/* Swap tiles button — only when tiles remain in bag and no pending tiles on board */}
+          {canSwap && !hasPending && (
+            <HapticTouchable
+              style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: moduleColor, borderWidth: 1 }]}
+              onPress={handleToggleSwapMode}
+            >
+              <Icon name="shuffle" size={20} color={moduleColor} />
+              <Text style={[styles.actionButtonText, { color: moduleColor }]}>
+                {t('games.woordy.swap')}
               </Text>
             </HapticTouchable>
           )}
@@ -606,6 +772,9 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
         }
       />
 
+      {/* Fullscreen Board Modal */}
+      {renderFullscreenBoard()}
+
       {/* Game Over Modal */}
       {gameState && showGameOver && (
         <GameOverModal
@@ -713,38 +882,54 @@ const styles = StyleSheet.create({
   boardRow: {
     flexDirection: 'row',
   },
-  cell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 0.5,
-    borderRadius: 2,
-    margin: 0.5,
-  },
   cellContent: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cellLetter: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  cellValue: {
-    fontSize: 8,
-    fontWeight: '500',
+  expandButton: {
     position: 'absolute',
-    bottom: -2,
-    right: -4,
+    bottom: spacing.sm,
+    right: spacing.sm,
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  fieldLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
+
+  // Fullscreen board
+  fullscreenContainer: {
+    flex: 1,
+  },
+  fullscreenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingTop: 60,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  fullscreenCloseButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenBoardContent: {
+    alignItems: 'center',
+    paddingBottom: spacing.xl,
+  },
+  fullscreenBoardContainer: {
+    paddingHorizontal: spacing.md,
   },
 
   // Rack
+  swapHint: {
+    ...typography.caption,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
   rackContainer: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,

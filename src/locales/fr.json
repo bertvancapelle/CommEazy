@@ -3175,7 +3175,11 @@
       "confirm": "Confirmer",
       "you": "Vous",
       "opponent": "Adversaire",
-      "tilesLeft": "Lettres restantes"
+      "tilesLeft": "Lettres restantes",
+      "swap": "Échanger",
+      "swapHint": "Touchez les tuiles à échanger",
+      "swapConfirm": "Échanger",
+      "fullscreen": "Plein écran"
     }
   }
 }

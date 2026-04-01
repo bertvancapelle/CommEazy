@@ -3009,7 +3009,11 @@
       "confirm": "Bekräfta",
       "you": "Du",
       "opponent": "Motståndare",
-      "tilesLeft": "Brickor kvar"
+      "tilesLeft": "Brickor kvar",
+      "swap": "Byt",
+      "swapHint": "Tryck på brickor att byta",
+      "swapConfirm": "Byt",
+      "fullscreen": "Helskärm"
     }
   }
 }

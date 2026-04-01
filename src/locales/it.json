@@ -3116,7 +3116,11 @@
       "confirm": "Conferma",
       "you": "Tu",
       "opponent": "Avversario",
-      "tilesLeft": "Tessere rimanenti"
+      "tilesLeft": "Tessere rimanenti",
+      "swap": "Scambia",
+      "swapHint": "Tocca le tessere da scambiare",
+      "swapConfirm": "Scambia",
+      "fullscreen": "Schermo intero"
     }
   }
 }

@@ -3033,7 +3033,11 @@
       "confirm": "Potwierdź",
       "you": "Ty",
       "opponent": "Przeciwnik",
-      "tilesLeft": "Pozostałe kafelki"
+      "tilesLeft": "Pozostałe kafelki",
+      "swap": "Wymień",
+      "swapHint": "Dotknij płytek do wymiany",
+      "swapConfirm": "Wymień",
+      "fullscreen": "Pełny ekran"
     }
   }
 }

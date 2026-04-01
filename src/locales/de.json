@@ -3174,7 +3174,11 @@
       "confirm": "Bestätigen",
       "you": "Du",
       "opponent": "Gegner",
-      "tilesLeft": "Buchstaben übrig"
+      "tilesLeft": "Buchstaben übrig",
+      "swap": "Tauschen",
+      "swapHint": "Tippe auf Steine zum Tauschen",
+      "swapConfirm": "Tauschen",
+      "fullscreen": "Vollbild"
     }
   }
 }

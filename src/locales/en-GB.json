@@ -3178,7 +3178,11 @@
       "confirm": "Confirm",
       "you": "You",
       "opponent": "Opponent",
-      "tilesLeft": "Tiles left"
+      "tilesLeft": "Tiles left",
+      "swap": "Swap",
+      "swapHint": "Tap tiles to swap",
+      "swapConfirm": "Swap",
+      "fullscreen": "Full screen"
     }
   }
 }

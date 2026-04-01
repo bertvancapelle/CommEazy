@@ -3178,7 +3178,11 @@
       "confirm": "Bevestig",
       "you": "Jij",
       "opponent": "Tegenstander",
-      "tilesLeft": "Tegels over"
+      "tilesLeft": "Tegels over",
+      "swap": "Ruilen",
+      "swapHint": "Tik op tegels om te ruilen",
+      "swapConfirm": "Ruil",
+      "fullscreen": "Beeldvullend"
     }
   }
 }

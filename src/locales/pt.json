@@ -3182,7 +3182,11 @@
       "confirm": "Confirmar",
       "you": "Você",
       "opponent": "Adversário",
-      "tilesLeft": "Peças restantes"
+      "tilesLeft": "Peças restantes",
+      "swap": "Trocar",
+      "swapHint": "Toque nas peças para trocar",
+      "swapConfirm": "Trocar",
+      "fullscreen": "Ecrã inteiro"
     }
   }
 }

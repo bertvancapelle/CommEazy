@@ -3039,7 +3039,11 @@
       "confirm": "Bekreft",
       "you": "Du",
       "opponent": "Motstander",
-      "tilesLeft": "Brikker igjen"
+      "tilesLeft": "Brikker igjen",
+      "swap": "Bytt",
+      "swapHint": "Trykk på brikker for å bytte",
+      "swapConfirm": "Bytt",
+      "fullscreen": "Fullskjerm"
     }
   }
 }

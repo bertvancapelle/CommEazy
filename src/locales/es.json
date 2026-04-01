@@ -3174,7 +3174,11 @@
       "confirm": "Confirmar",
       "you": "Tú",
       "opponent": "Oponente",
-      "tilesLeft": "Fichas restantes"
+      "tilesLeft": "Fichas restantes",
+      "swap": "Cambiar",
+      "swapHint": "Toca fichas para cambiar",
+      "swapConfirm": "Cambiar",
+      "fullscreen": "Pantalla completa"
     }
   }
 }

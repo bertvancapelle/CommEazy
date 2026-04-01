@@ -3009,7 +3009,11 @@
       "confirm": "Bekræft",
       "you": "Du",
       "opponent": "Modstander",
-      "tilesLeft": "Brikker tilbage"
+      "tilesLeft": "Brikker tilbage",
+      "swap": "Byt",
+      "swapHint": "Tryk på brikker for at bytte",
+      "swapConfirm": "Byt",
+      "fullscreen": "Fuld skærm"
     }
   }
 }
